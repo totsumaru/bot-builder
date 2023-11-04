@@ -9,7 +9,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/joho/godotenv"
-	"github.com/totsumaru/bot-builder/handler"
+	"github.com/totsumaru/bot-builder/bot/handler"
 )
 
 const (

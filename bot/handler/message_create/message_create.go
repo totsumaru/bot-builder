@@ -2,9 +2,9 @@ package message_create
 
 import (
 	"github.com/bwmarrin/discordgo"
-	"github.com/totsumaru/bot-builder/action"
+	"github.com/totsumaru/bot-builder/bot/action"
+	"github.com/totsumaru/bot-builder/bot/trigger"
 	"github.com/totsumaru/bot-builder/lib/errors"
-	"github.com/totsumaru/bot-builder/trigger"
 )
 
 // メッセージが作成された時のハンドラです

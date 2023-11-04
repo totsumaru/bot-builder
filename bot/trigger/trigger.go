@@ -6,6 +6,20 @@ type Trigger interface {
 	ID() string
 }
 
+var events = map[string]map[string][]Trigger{
+	"984614055681613864": {
+		"messageCreate": {
+			MessageTrigger{},
+			MessageTrigger{},
+			MessageTrigger{},
+			MessageTrigger{},
+		},
+		"interactionCreate": {
+			ButtonTrigger{},
+		},
+	},
+}
+
 // サーバー名: トリガーの配列
 var Triggers = map[string][]Trigger{
 	"984614055681613864": {
@@ -19,6 +33,9 @@ var Triggers = map[string][]Trigger{
 			}{
 				roleID:    []string{"998800967665459240"},
 				channelID: []string{}},
+		},
+		ButtonTrigger{
+			id: "trigger2",
 		},
 	},
 }

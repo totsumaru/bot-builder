@@ -19,7 +19,7 @@ type Error struct {
 	Previous error
 }
 
-const AdminServerID = "984614055681613864"
+const AdminServerID = "998773327076274197"
 
 // エラーメッセージを送信します
 func SendErrMsg(s *discordgo.Session, e error) {

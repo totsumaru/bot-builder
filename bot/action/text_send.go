@@ -34,11 +34,10 @@ func (a TextSendAction) Order() int {
 func (a TextSendAction) Execute(s *discordgo.Session, event interface{}) error {
 	channelID := a.channelID
 
+	// チャンネルが指定されていない場合は、送信元のチャンネルに送信する
 	if channelID == "" {
-		// イベントをキャストする
 		switch event.(type) {
 		case *discordgo.MessageCreate:
-			// メッセージを送信したチャンネルに送信する
 			channelID = event.(*discordgo.MessageCreate).ChannelID
 		case *discordgo.InteractionCreate:
 			channelID = event.(*discordgo.InteractionCreate).ChannelID

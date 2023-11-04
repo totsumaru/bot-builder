@@ -34,7 +34,7 @@ func (t MessageTrigger) ID() string {
 func (t MessageTrigger) IsMatch(m interface{}) (bool, error) {
 	messageCreate, ok := m.(*discordgo.MessageCreate)
 	if !ok {
-		return false, errors.NewError("MessageTriggerのIsMatchに渡された型が違います")
+		return false, nil
 	}
 
 	// ロールIDが設定されている場合はロールIDが一致するか確認する
