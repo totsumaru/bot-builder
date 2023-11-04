@@ -12,17 +12,19 @@ type ButtonEvent struct {
 }
 
 // ボタンのイベントを生成します
+//
+// ボタンはActionの作成時にEventが作られるため、外部からIDを取得します。
 func NewButtonEvent(
 	id domain.UUID,
 	allowedRoleID []domain.DiscordID,
 	allowedChannelID []domain.DiscordID,
 ) (ButtonEvent, error) {
-	e, err := event.NewEvent(
-		id,
-		event.EventKindButton,
-		allowedRoleID,
-		allowedChannelID,
-	)
+	k, err := event.NewKind(event.EventKindButton)
+	if err != nil {
+		return ButtonEvent{}, errors.NewError("イベントの種類を生成できません", err)
+	}
+
+	e, err := event.NewEvent(id, k, allowedRoleID, allowedChannelID)
 	if err != nil {
 		return ButtonEvent{}, errors.NewError("イベントを作成できません", err)
 	}

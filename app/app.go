@@ -54,6 +54,8 @@ func CreateMessageEvent(
 		return errors.NewError("JSONに変換できません", err)
 	}
 
+	fmt.Println(string(b))
+
 	me2 := message.MessageEvent{}
 	if err = json.Unmarshal(b, &me2); err != nil {
 		return errors.NewError("JSONから構造体に変換できません", err)

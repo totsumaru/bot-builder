@@ -27,12 +27,12 @@ func NewMessageEvent(
 		return MessageEvent{}, errors.NewError("UUIDを生成できません", err)
 	}
 
-	e, err := event.NewEvent(
-		id,
-		event.EventKindMessageCreate,
-		allowedRoleID,
-		allowedChannelID,
-	)
+	k, err := event.NewKind(event.EventKindMessageCreate)
+	if err != nil {
+		return MessageEvent{}, errors.NewError("イベントの種類を生成できません", err)
+	}
+
+	e, err := event.NewEvent(id, k, allowedRoleID, allowedChannelID)
 	if err != nil {
 		return MessageEvent{}, errors.NewError("イベントを作成できません", err)
 	}
