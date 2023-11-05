@@ -10,7 +10,7 @@ import (
 
 // テキストアクションです
 type TextAction struct {
-	domain.Action
+	domain.ActionCore
 	content     Content
 	button      []button.Button
 	isResponse  bool
@@ -39,7 +39,7 @@ func NewTextAction(
 	}
 
 	ta := TextAction{
-		Action:      act,
+		ActionCore:  act,
 		content:     content,
 		button:      button,
 		isResponse:  isResponse,
@@ -141,7 +141,7 @@ func (ta *TextAction) UnmarshalJSON(b []byte) error {
 		return errors.NewError("JSONからテキストアクションを復元できませんでした", err)
 	}
 
-	ta.Action = act
+	ta.ActionCore = act
 	ta.content = data.Content
 	ta.button = data.Button
 	ta.isResponse = data.IsResponse

@@ -6,8 +6,16 @@ import (
 	"github.com/totsumaru/bot-builder/lib/errors"
 )
 
+// アクションのInterfaceです
+type Action interface {
+	ID() UUID
+	EventID() UUID
+	Kind() Kind
+	Order() Order
+}
+
 // アクションの共通の構造体です
-type Action struct {
+type ActionCore struct {
 	id      UUID
 	eventID UUID
 	kind    Kind
@@ -15,13 +23,13 @@ type Action struct {
 }
 
 // アクションを生成します
-func NewAction(eventID UUID, kind Kind, order Order) (Action, error) {
+func NewAction(eventID UUID, kind Kind, order Order) (ActionCore, error) {
 	id, err := NewUUID()
 	if err != nil {
-		return Action{}, errors.NewError("UUIDの生成に失敗しました", err)
+		return ActionCore{}, errors.NewError("UUIDの生成に失敗しました", err)
 	}
 
-	a := Action{
+	a := ActionCore{
 		id:      id,
 		eventID: eventID,
 		kind:    kind,
@@ -36,32 +44,32 @@ func NewAction(eventID UUID, kind Kind, order Order) (Action, error) {
 }
 
 // アクションのIDを返します
-func (a Action) ID() UUID {
+func (a ActionCore) ID() UUID {
 	return a.id
 }
 
 // アクションのイベントIDを返します
-func (a Action) EventID() UUID {
+func (a ActionCore) EventID() UUID {
 	return a.eventID
 }
 
 // アクションの種類を返します
-func (a Action) Kind() Kind {
+func (a ActionCore) Kind() Kind {
 	return a.kind
 }
 
 // アクションの実行する順番を返します
-func (a Action) Order() Order {
+func (a ActionCore) Order() Order {
 	return a.order
 }
 
 // アクションの検証を行います
-func (a Action) Validate() error {
+func (a ActionCore) Validate() error {
 	return nil
 }
 
 // 構造体からJSONに変換します
-func (a Action) MarshalJSON() ([]byte, error) {
+func (a ActionCore) MarshalJSON() ([]byte, error) {
 	data := struct {
 		ID      UUID  `json:"id"`
 		EventID UUID  `json:"event_id"`
@@ -78,7 +86,7 @@ func (a Action) MarshalJSON() ([]byte, error) {
 }
 
 // JSONから構造体に変換します
-func (a *Action) UnmarshalJSON(b []byte) error {
+func (a *ActionCore) UnmarshalJSON(b []byte) error {
 	data := struct {
 		ID      UUID  `json:"id"`
 		EventID UUID  `json:"event_id"`
