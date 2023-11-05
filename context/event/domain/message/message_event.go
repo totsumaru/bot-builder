@@ -9,7 +9,7 @@ import (
 
 // メッセージイベントの構造体です
 type MessageEvent struct {
-	domain.Event
+	domain.EventCore
 	keyword   Keyword
 	matchType MatchType
 }
@@ -37,7 +37,7 @@ func NewMessageEvent(
 	}
 
 	me := MessageEvent{
-		Event:     e,
+		EventCore: e,
 		keyword:   keyword,
 		matchType: matchType,
 	}
@@ -110,7 +110,7 @@ func (e *MessageEvent) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	e.Event = eventData
+	e.EventCore = eventData
 	e.keyword = data.Keyword
 	e.matchType = data.MatchType
 

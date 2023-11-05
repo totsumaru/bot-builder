@@ -11,8 +11,16 @@ const (
 	MaxAllowedChannelID = 10
 )
 
+// イベントのInterfaceです
+type Event interface {
+	ID() UUID
+	Kind() Kind
+	AllowedRoleID() []DiscordID
+	AllowedChannelID() []DiscordID
+}
+
 // Eventの共通の構造体です
-type Event struct {
+type EventCore struct {
 	id               UUID
 	kind             Kind
 	allowedRoleID    []DiscordID
@@ -25,15 +33,15 @@ func NewEvent(
 	kind Kind,
 	allowedRoleID []DiscordID,
 	allowedChannelID []DiscordID,
-) (Event, error) {
-	e := Event{
+) (EventCore, error) {
+	e := EventCore{
 		id:               id,
 		kind:             kind,
 		allowedRoleID:    allowedRoleID,
 		allowedChannelID: allowedChannelID,
 	}
 
-	if err := e.Validate(); err != nil {
+	if err := e.validate(); err != nil {
 		return e, errors.NewError("検証に失敗しました", err)
 	}
 
@@ -41,27 +49,27 @@ func NewEvent(
 }
 
 // イベントのIDを返します
-func (e Event) ID() UUID {
+func (e EventCore) ID() UUID {
 	return e.id
 }
 
 // イベントの種類を返します
-func (e Event) Kind() Kind {
+func (e EventCore) Kind() Kind {
 	return e.kind
 }
 
 // イベントの許可されたロールIDを返します
-func (e Event) AllowedRoleID() []DiscordID {
+func (e EventCore) AllowedRoleID() []DiscordID {
 	return e.allowedRoleID
 }
 
 // イベントの許可されたチャンネルIDを返します
-func (e Event) AllowedChannelID() []DiscordID {
+func (e EventCore) AllowedChannelID() []DiscordID {
 	return e.allowedChannelID
 }
 
 // イベントの検証を行います
-func (e Event) Validate() error {
+func (e EventCore) validate() error {
 	if len(e.allowedRoleID) > MaxAllowedRoleID {
 		return errors.NewError("許可されたロールIDの最大数を超えています")
 	}
@@ -74,7 +82,7 @@ func (e Event) Validate() error {
 }
 
 // 構造体からJSONに変換します
-func (e Event) MarshalJSON() ([]byte, error) {
+func (e EventCore) MarshalJSON() ([]byte, error) {
 	data := struct {
 		ID               UUID        `json:"id"`
 		Kind             Kind        `json:"kind"`
@@ -91,7 +99,7 @@ func (e Event) MarshalJSON() ([]byte, error) {
 }
 
 // JSONから構造体に変換します
-func (e *Event) UnmarshalJSON(b []byte) error {
+func (e *EventCore) UnmarshalJSON(b []byte) error {
 	data := struct {
 		ID               UUID        `json:"id"`
 		Kind             Kind        `json:"kind"`

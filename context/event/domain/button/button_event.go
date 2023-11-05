@@ -7,7 +7,7 @@ import (
 
 // ボタンのイベントの構造体です
 type ButtonEvent struct {
-	domain.Event
+	domain.EventCore
 }
 
 // ボタンのイベントを生成します
@@ -44,10 +44,10 @@ func (e ButtonEvent) Validate() error {
 
 // 構造体からJSONに変換します
 func (e ButtonEvent) MarshalJSON() ([]byte, error) {
-	return e.Event.MarshalJSON()
+	return e.EventCore.MarshalJSON()
 }
 
 // JSONから構造体に変換します
 func (e *ButtonEvent) UnmarshalJSON(b []byte) error {
-	return e.Event.UnmarshalJSON(b)
+	return e.EventCore.UnmarshalJSON(b)
 }

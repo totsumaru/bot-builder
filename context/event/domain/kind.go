@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	EventKindMessageCreate = "MESSAGE" // メッセージが送信された時のイベントです
-	EventKindButton        = "BUTTON"  // ボタンが押された時のイベントです
+	EventKindMessageCreate = "MESSAGE_CREATE" // メッセージが送信された時のイベントです
+	EventKindButton        = "BUTTON"         // ボタンが押された時のイベントです
 )
 
 // Eventの種類です
