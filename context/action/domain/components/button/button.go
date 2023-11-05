@@ -53,6 +53,7 @@ func (b Button) URL() URL {
 
 // 検証します
 func (b Button) validate() error {
+	// Linkの時はURLが必須
 	switch b.style.String() {
 	case ButtonStyleLink:
 		if b.url.IsEmpty() {
