@@ -1,9 +1,8 @@
-package event
+package domain
 
 import (
 	"encoding/json"
 
-	"github.com/totsumaru/bot-builder/domain"
 	"github.com/totsumaru/bot-builder/lib/errors"
 )
 
@@ -14,18 +13,18 @@ const (
 
 // Eventの共通の構造体です
 type Event struct {
-	id               domain.UUID
+	id               UUID
 	kind             Kind
-	allowedRoleID    []domain.DiscordID
-	allowedChannelID []domain.DiscordID
+	allowedRoleID    []DiscordID
+	allowedChannelID []DiscordID
 }
 
 // イベントを生成します
 func NewEvent(
-	id domain.UUID,
+	id UUID,
 	kind Kind,
-	allowedRoleID []domain.DiscordID,
-	allowedChannelID []domain.DiscordID,
+	allowedRoleID []DiscordID,
+	allowedChannelID []DiscordID,
 ) (Event, error) {
 	e := Event{
 		id:               id,
@@ -42,7 +41,7 @@ func NewEvent(
 }
 
 // イベントのIDを返します
-func (e Event) ID() domain.UUID {
+func (e Event) ID() UUID {
 	return e.id
 }
 
@@ -52,12 +51,12 @@ func (e Event) Kind() Kind {
 }
 
 // イベントの許可されたロールIDを返します
-func (e Event) AllowedRoleID() []domain.DiscordID {
+func (e Event) AllowedRoleID() []DiscordID {
 	return e.allowedRoleID
 }
 
 // イベントの許可されたチャンネルIDを返します
-func (e Event) AllowedChannelID() []domain.DiscordID {
+func (e Event) AllowedChannelID() []DiscordID {
 	return e.allowedChannelID
 }
 
@@ -77,10 +76,10 @@ func (e Event) Validate() error {
 // 構造体からJSONに変換します
 func (e Event) MarshalJSON() ([]byte, error) {
 	data := struct {
-		ID               domain.UUID        `json:"id"`
-		Kind             Kind               `json:"kind"`
-		AllowedRoleID    []domain.DiscordID `json:"allowed_role_id"`
-		AllowedChannelID []domain.DiscordID `json:"allowed_channel_id"`
+		ID               UUID        `json:"id"`
+		Kind             Kind        `json:"kind"`
+		AllowedRoleID    []DiscordID `json:"allowed_role_id"`
+		AllowedChannelID []DiscordID `json:"allowed_channel_id"`
 	}{
 		ID:               e.id,
 		Kind:             e.kind,
@@ -94,10 +93,10 @@ func (e Event) MarshalJSON() ([]byte, error) {
 // JSONから構造体に変換します
 func (e *Event) UnmarshalJSON(b []byte) error {
 	data := struct {
-		ID               domain.UUID        `json:"id"`
-		Kind             Kind               `json:"kind"`
-		AllowedRoleID    []domain.DiscordID `json:"allowed_role_id"`
-		AllowedChannelID []domain.DiscordID `json:"allowed_channel_id"`
+		ID               UUID        `json:"id"`
+		Kind             Kind        `json:"kind"`
+		AllowedRoleID    []DiscordID `json:"allowed_role_id"`
+		AllowedChannelID []DiscordID `json:"allowed_channel_id"`
 	}{}
 
 	if err := json.Unmarshal(b, &data); err != nil {

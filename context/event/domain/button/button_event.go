@@ -1,14 +1,13 @@
 package button
 
 import (
-	"github.com/totsumaru/bot-builder/domain"
-	"github.com/totsumaru/bot-builder/domain/event"
+	"github.com/totsumaru/bot-builder/context/event/domain"
 	"github.com/totsumaru/bot-builder/lib/errors"
 )
 
 // ボタンのイベントの構造体です
 type ButtonEvent struct {
-	event.Event
+	domain.Event
 }
 
 // ボタンのイベントを生成します
@@ -19,12 +18,12 @@ func NewButtonEvent(
 	allowedRoleID []domain.DiscordID,
 	allowedChannelID []domain.DiscordID,
 ) (ButtonEvent, error) {
-	k, err := event.NewKind(event.EventKindButton)
+	k, err := domain.NewKind(domain.EventKindButton)
 	if err != nil {
 		return ButtonEvent{}, errors.NewError("イベントの種類を生成できません", err)
 	}
 
-	e, err := event.NewEvent(id, k, allowedRoleID, allowedChannelID)
+	e, err := domain.NewEvent(id, k, allowedRoleID, allowedChannelID)
 	if err != nil {
 		return ButtonEvent{}, errors.NewError("イベントを作成できません", err)
 	}

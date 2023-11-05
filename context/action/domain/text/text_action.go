@@ -3,15 +3,14 @@ package text
 import (
 	"encoding/json"
 
-	"github.com/totsumaru/bot-builder/domain"
-	"github.com/totsumaru/bot-builder/domain/action"
-	"github.com/totsumaru/bot-builder/domain/action/components/button"
+	"github.com/totsumaru/bot-builder/context/action/domain"
+	"github.com/totsumaru/bot-builder/context/action/domain/components/button"
 	"github.com/totsumaru/bot-builder/lib/errors"
 )
 
 // テキストアクションです
 type TextAction struct {
-	action.Action
+	domain.Action
 	content     Content
 	button      []button.Button
 	isResponse  bool
@@ -21,13 +20,26 @@ type TextAction struct {
 
 // テキストアクションを作成します
 func NewTextAction(
+	eventID domain.UUID,
+	order domain.Order,
 	content Content,
 	button []button.Button,
 	isResponse bool,
 	isEphemeral bool,
 	channelID domain.DiscordID,
 ) (TextAction, error) {
+	k, err := domain.NewKind(domain.ActionKindText)
+	if err != nil {
+		return TextAction{}, errors.NewError("アクションの種類の生成に失敗しました", err)
+	}
+
+	act, err := domain.NewAction(eventID, k, order)
+	if err != nil {
+		return TextAction{}, errors.NewError("アクションの生成に失敗しました", err)
+	}
+
 	ta := TextAction{
+		Action:      act,
 		content:     content,
 		button:      button,
 		isResponse:  isResponse,
@@ -35,7 +47,7 @@ func NewTextAction(
 		channelID:   channelID,
 	}
 
-	if err := ta.validate(); err != nil {
+	if err = ta.validate(); err != nil {
 		return ta, errors.NewError("検証に失敗しました", err)
 	}
 
@@ -84,8 +96,8 @@ func (ta TextAction) MarshalJSON() ([]byte, error) {
 	data := struct {
 		ID          domain.UUID      `json:"id"`
 		EventID     domain.UUID      `json:"event_id"`
-		Kind        action.Kind      `json:"kind"`
-		Order       action.Order     `json:"order"`
+		Kind        domain.Kind      `json:"kind"`
+		Order       domain.Order     `json:"order"`
 		Content     Content          `json:"content"`
 		Button      []button.Button  `json:"button"`
 		IsResponse  bool             `json:"is_response"`
@@ -111,8 +123,8 @@ func (ta *TextAction) UnmarshalJSON(b []byte) error {
 	data := struct {
 		ID          domain.UUID      `json:"id"`
 		EventID     domain.UUID      `json:"event_id"`
-		Kind        action.Kind      `json:"kind"`
-		Order       action.Order     `json:"order"`
+		Kind        domain.Kind      `json:"kind"`
+		Order       domain.Order     `json:"order"`
 		Content     Content          `json:"content"`
 		Button      []button.Button  `json:"button"`
 		IsResponse  bool             `json:"is_response"`
@@ -124,7 +136,7 @@ func (ta *TextAction) UnmarshalJSON(b []byte) error {
 		return errors.NewError("JSONからテキストアクションを復元できませんでした", err)
 	}
 
-	act, err := action.NewAction(data.ID, data.Kind, data.Order)
+	act, err := domain.NewAction(data.ID, data.Kind, data.Order)
 	if err != nil {
 		return errors.NewError("JSONからテキストアクションを復元できませんでした", err)
 	}

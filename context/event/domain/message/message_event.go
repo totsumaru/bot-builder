@@ -3,14 +3,13 @@ package message
 import (
 	"encoding/json"
 
-	"github.com/totsumaru/bot-builder/domain"
-	"github.com/totsumaru/bot-builder/domain/event"
+	"github.com/totsumaru/bot-builder/context/event/domain"
 	"github.com/totsumaru/bot-builder/lib/errors"
 )
 
 // メッセージイベントの構造体です
 type MessageEvent struct {
-	event.Event
+	domain.Event
 	keyword   Keyword
 	matchType MatchType
 }
@@ -27,12 +26,12 @@ func NewMessageEvent(
 		return MessageEvent{}, errors.NewError("UUIDを生成できません", err)
 	}
 
-	k, err := event.NewKind(event.EventKindMessageCreate)
+	k, err := domain.NewKind(domain.EventKindMessageCreate)
 	if err != nil {
 		return MessageEvent{}, errors.NewError("イベントの種類を生成できません", err)
 	}
 
-	e, err := event.NewEvent(id, k, allowedRoleID, allowedChannelID)
+	e, err := domain.NewEvent(id, k, allowedRoleID, allowedChannelID)
 	if err != nil {
 		return MessageEvent{}, errors.NewError("イベントを作成できません", err)
 	}
@@ -69,7 +68,7 @@ func (e MessageEvent) Validate() error {
 func (e MessageEvent) MarshalJSON() ([]byte, error) {
 	data := struct {
 		ID               domain.UUID        `json:"id"`
-		Kind             event.Kind         `json:"kind"`
+		Kind             domain.Kind        `json:"kind"`
 		AllowedRoleID    []domain.DiscordID `json:"allowed_role_id"`
 		AllowedChannelID []domain.DiscordID `json:"allowed_channel_id"`
 		Keyword          Keyword            `json:"keyword"`
@@ -90,7 +89,7 @@ func (e MessageEvent) MarshalJSON() ([]byte, error) {
 func (e *MessageEvent) UnmarshalJSON(b []byte) error {
 	data := struct {
 		ID               domain.UUID        `json:"id"`
-		Kind             event.Kind         `json:"kind"`
+		Kind             domain.Kind        `json:"kind"`
 		AllowedRoleID    []domain.DiscordID `json:"allowed_role_id"`
 		AllowedChannelID []domain.DiscordID `json:"allowed_channel_id"`
 		Keyword          Keyword            `json:"keyword"`
@@ -101,7 +100,7 @@ func (e *MessageEvent) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	eventData, err := event.NewEvent(
+	eventData, err := domain.NewEvent(
 		data.ID,
 		data.Kind,
 		data.AllowedRoleID,

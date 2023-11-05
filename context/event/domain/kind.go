@@ -1,4 +1,4 @@
-package action
+package domain
 
 import (
 	"encoding/json"
@@ -6,17 +6,17 @@ import (
 	"github.com/totsumaru/bot-builder/lib/errors"
 )
 
-// Actionの種類を表す定数です
+const (
+	EventKindMessageCreate = "MESSAGE" // メッセージが送信された時のイベントです
+	EventKindButton        = "BUTTON"  // ボタンが押された時のイベントです
+)
+
+// Eventの種類です
 type Kind struct {
 	value string
 }
 
-const (
-	ActionKindText  = "TEXT"  // 通常のテキストのActionです
-	ActionKindEmbed = "EMBED" // EmbedのActionです
-)
-
-// Actionの種類を作成します
+// イベントの種類を作成します
 func NewKind(value string) (Kind, error) {
 	k := Kind{value: value}
 
@@ -27,29 +27,29 @@ func NewKind(value string) (Kind, error) {
 	return k, nil
 }
 
-// Actionの種類を返します
+// イベントの種類を返します
 func (k Kind) String() string {
 	return k.value
 }
 
-// Actionの種類が存在しているか確認します
+// イベントの種類が存在しているか確認します
 func (k Kind) IsEmpty() bool {
 	return k.value == ""
 }
 
-// Actionの種類を検証します
+// イベントの種類を検証します
 func (k Kind) validate() error {
 	switch k.value {
-	case ActionKindText:
-	case ActionKindEmbed:
+	case EventKindMessageCreate:
+	case EventKindButton:
 	default:
-		return errors.NewError("Actionの種類が不正です")
+		return errors.NewError("イベントの種類が不正です")
 	}
 
 	return nil
 }
 
-// Actionの種類をJSONに変換します
+// イベントの種類をJSONに変換します
 func (k Kind) MarshalJSON() ([]byte, error) {
 	data := struct {
 		Kind string `json:"kind"`
@@ -60,21 +60,17 @@ func (k Kind) MarshalJSON() ([]byte, error) {
 	return json.Marshal(data)
 }
 
-// Actionの種類をJSONから復元します
+// JSONからイベントの種類を復元します
 func (k *Kind) UnmarshalJSON(b []byte) error {
 	data := struct {
 		Kind string `json:"kind"`
 	}{}
 
 	if err := json.Unmarshal(b, &data); err != nil {
-		return errors.NewError("JSONの変換に失敗しました", err)
+		return errors.NewError("JSONからイベントの種類の復元に失敗しました", err)
 	}
 
 	k.value = data.Kind
-
-	if err := k.validate(); err != nil {
-		return errors.NewError("検証に失敗しました", err)
-	}
 
 	return nil
 }

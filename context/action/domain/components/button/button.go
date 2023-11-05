@@ -3,7 +3,7 @@ package button
 import (
 	"encoding/json"
 
-	"github.com/totsumaru/bot-builder/domain"
+	"github.com/totsumaru/bot-builder/context/action/domain"
 	"github.com/totsumaru/bot-builder/lib/errors"
 )
 

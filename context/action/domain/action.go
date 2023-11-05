@@ -1,23 +1,22 @@
-package action
+package domain
 
 import (
 	"encoding/json"
 
-	"github.com/totsumaru/bot-builder/domain"
 	"github.com/totsumaru/bot-builder/lib/errors"
 )
 
 // アクションの共通の構造体です
 type Action struct {
-	id      domain.UUID
-	eventID domain.UUID
+	id      UUID
+	eventID UUID
 	kind    Kind
 	order   Order
 }
 
 // アクションを生成します
-func NewAction(eventID domain.UUID, kind Kind, order Order) (Action, error) {
-	id, err := domain.NewUUID()
+func NewAction(eventID UUID, kind Kind, order Order) (Action, error) {
+	id, err := NewUUID()
 	if err != nil {
 		return Action{}, errors.NewError("UUIDの生成に失敗しました", err)
 	}
@@ -37,12 +36,12 @@ func NewAction(eventID domain.UUID, kind Kind, order Order) (Action, error) {
 }
 
 // アクションのIDを返します
-func (a Action) ID() domain.UUID {
+func (a Action) ID() UUID {
 	return a.id
 }
 
 // アクションのイベントIDを返します
-func (a Action) EventID() domain.UUID {
+func (a Action) EventID() UUID {
 	return a.eventID
 }
 
@@ -64,10 +63,10 @@ func (a Action) Validate() error {
 // 構造体からJSONに変換します
 func (a Action) MarshalJSON() ([]byte, error) {
 	data := struct {
-		ID      domain.UUID `json:"id"`
-		EventID domain.UUID `json:"event_id"`
-		Kind    Kind        `json:"kind"`
-		Order   Order       `json:"order"`
+		ID      UUID  `json:"id"`
+		EventID UUID  `json:"event_id"`
+		Kind    Kind  `json:"kind"`
+		Order   Order `json:"order"`
 	}{
 		ID:      a.id,
 		EventID: a.eventID,
@@ -81,10 +80,10 @@ func (a Action) MarshalJSON() ([]byte, error) {
 // JSONから構造体に変換します
 func (a *Action) UnmarshalJSON(b []byte) error {
 	data := struct {
-		ID      domain.UUID `json:"id"`
-		EventID domain.UUID `json:"event_id"`
-		Kind    Kind        `json:"kind"`
-		Order   Order       `json:"order"`
+		ID      UUID  `json:"id"`
+		EventID UUID  `json:"event_id"`
+		Kind    Kind  `json:"kind"`
+		Order   Order `json:"order"`
 	}{}
 
 	if err := json.Unmarshal(b, &data); err != nil {

@@ -1,4 +1,4 @@
-package action
+package domain
 
 import (
 	"encoding/json"
