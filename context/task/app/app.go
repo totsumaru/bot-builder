@@ -29,7 +29,7 @@ type CreateTextActionRequest struct {
 }
 
 // テキストアクションを作成します
-func NewTextAction(tx *gorm.DB, req CreateTextActionRequest) (text.TextAction, error) {
+func CreateTextAction(tx *gorm.DB, req CreateTextActionRequest) (text.TextAction, error) {
 	res := text.TextAction{}
 
 	eventID, err := domain.RestoreUUID(req.EventID)
@@ -96,6 +96,28 @@ func NewTextAction(tx *gorm.DB, req CreateTextActionRequest) (text.TextAction, e
 
 	if err = gw.Create(res); err != nil {
 		return res, errors.NewError("テキストアクションを保存できません", err)
+	}
+
+	return res, nil
+}
+
+// IDでアクションを取得します
+func FindByID(tx *gorm.DB, id string) (domain.Action, error) {
+	var res domain.Action
+
+	actionID, err := domain.RestoreUUID(id)
+	if err != nil {
+		return res, errors.NewError("idを復元できません", err)
+	}
+
+	gw, err := gateway.NewGateway(tx)
+	if err != nil {
+		return res, errors.NewError("Gatewayを作成できません", err)
+	}
+
+	res, err = gw.FindByID(actionID)
+	if err != nil {
+		return res, errors.NewError("アクションを取得できません", err)
 	}
 
 	return res, nil

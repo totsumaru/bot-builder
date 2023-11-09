@@ -1,15 +1,23 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/totsumaru/bot-builder/api"
 	"github.com/totsumaru/bot-builder/bot/handler"
+	actionDB "github.com/totsumaru/bot-builder/context/action/gateway/database"
+	eventDB "github.com/totsumaru/bot-builder/context/event/gateway/database"
+	"github.com/totsumaru/bot-builder/lib/errors"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 const (
@@ -23,8 +31,11 @@ func init() {
 	}
 	time.Local = loc
 
-	if err = godotenv.Load(".env"); err != nil {
-		panic(fmt.Sprintf(".envを読み込めません: %v", err))
+	// .envが存在している場合は読み込み
+	if _, err = os.Stat(".env"); err == nil {
+		if err = godotenv.Load(); err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -51,6 +62,62 @@ func main() {
 		}
 		return
 	}()
+
+	// DBの設定
+	dialector := postgres.Open(os.Getenv("DB_URL"))
+	db, err := gorm.Open(dialector, &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
+	if err != nil {
+		panic(errors.NewError("DBに接続できません", err))
+	}
+
+	// テーブルが存在していない場合のみテーブルを作成します
+	// 存在している場合はスキーマを同期します
+	if err = db.AutoMigrate(&eventDB.Event{}, &actionDB.Action{}); err != nil {
+		panic(errors.NewError("テーブルのスキーマが一致しません", err))
+	}
+
+	// Ginの設定
+	{
+		engine := gin.Default()
+
+		// CORSの設定
+		// ここからCorsの設定
+		engine.Use(cors.New(cors.Config{
+			// アクセスを許可したいアクセス元
+			AllowOrigins: []string{
+				"http://localhost:3000",
+			},
+			// アクセスを許可したいHTTPメソッド
+			AllowMethods: []string{
+				"GET",
+				"POST",
+				"OPTIONS",
+			},
+			// 許可したいHTTPリクエストヘッダ
+			AllowHeaders: []string{
+				"Origin",
+				"Content-Length",
+				"Content-Type",
+				"Authorization",
+				"Accept",
+				"X-Requested-With",
+			},
+			ExposeHeaders: []string{"Content-Length"},
+			// cookieなどの情報を必要とするかどうか
+			AllowCredentials: false,
+			// preflightリクエストの結果をキャッシュする時間
+			//MaxAge: 24 * time.Hour,
+		}))
+
+		// ルートを設定する
+		api.RegisterRouter(engine, db)
+
+		if err = engine.Run(":8080"); err != nil {
+			log.Fatal("起動に失敗しました", err)
+		}
+	}
 
 	stopBot := make(chan os.Signal, 1)
 	signal.Notify(stopBot, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
