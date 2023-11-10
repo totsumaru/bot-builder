@@ -1,4 +1,4 @@
-package send_embed
+package reply_embed
 
 import (
 	"encoding/json"

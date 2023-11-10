@@ -1,124 +1,278 @@
 package app
 
 import (
-	"github.com/totsumaru/bot-builder/context/action/domain"
-	"github.com/totsumaru/bot-builder/context/action/domain/components/button"
-	"github.com/totsumaru/bot-builder/context/action/domain/text"
-	"github.com/totsumaru/bot-builder/context/action/gateway"
+	"github.com/totsumaru/bot-builder/context/task/domain"
+	"github.com/totsumaru/bot-builder/context/task/domain/action"
+	"github.com/totsumaru/bot-builder/context/task/domain/action/reply_embed"
+	"github.com/totsumaru/bot-builder/context/task/domain/action/reply_text"
+	"github.com/totsumaru/bot-builder/context/task/domain/action/send_embed"
+	"github.com/totsumaru/bot-builder/context/task/domain/action/send_text"
+	"github.com/totsumaru/bot-builder/context/task/domain/condition"
 	"github.com/totsumaru/bot-builder/lib/errors"
-	"gorm.io/gorm"
 )
 
-// ボタンを作成するリクエストです
-type CreateButtonRequest struct {
-	Label   string
-	Style   string
-	EventID string
-	URL     string
+// タスクを作成するリクエストです
+type CreateTaskReq struct {
+	ServerID      string
+	ApplicationID string
+	IfBlock       IfBlockReq
 }
 
-// テキストアクションの作成リクエストです
-type CreateTextActionRequest struct {
-	EventID     string
-	Order       int
-	Content     string
-	Button      []CreateButtonRequest
-	IsResponse  bool
-	IsEphemeral bool
+// タスクを更新するリクエストです
+type UpdateTaskReq struct {
+	ID string
+	CreateTaskReq
+}
+
+// ifブロックのリクエストです
+type IfBlockReq struct {
+	Condition struct {
+		Kind     string
+		Expected string
+	}
+	TrueAction  []any
+	FalseAction []any
+}
+
+// テキストを送信するアクションのリクエストです
+type SendTextActionReq struct {
 	ChannelID   string
+	Content     string
+	ComponentID []string
 }
 
-// テキストアクションを作成します
-func CreateTextAction(tx *gorm.DB, req CreateTextActionRequest) (text.TextAction, error) {
-	res := text.TextAction{}
-
-	eventID, err := domain.RestoreUUID(req.EventID)
-	if err != nil {
-		return res, errors.NewError("UUIDを復元できません", err)
-	}
-
-	order, err := domain.NewOrder(req.Order)
-	if err != nil {
-		return res, errors.NewError("順序を生成できません", err)
-	}
-
-	content, err := text.NewContent(req.Content)
-	if err != nil {
-		return res, errors.NewError("コンテンツを生成できません", err)
-	}
-
-	btns := make([]button.Button, 0)
-	for _, b := range req.Button {
-		label, err := button.NewLabel(b.Label)
-		if err != nil {
-			return res, errors.NewError("ラベルを生成できません", err)
-		}
-
-		style, err := button.NewStyle(b.Style)
-		if err != nil {
-			return res, errors.NewError("スタイルを生成できません", err)
-		}
-
-		newEventID, err := domain.RestoreUUID(b.EventID)
-		if err != nil {
-			return res, errors.NewError("UUIDを復元できません", err)
-		}
-
-		url, err := button.NewURL(b.URL)
-		if err != nil {
-			return res, errors.NewError("URLを生成できません", err)
-		}
-
-		btn, err := button.NewButton(label, style, newEventID, url)
-		if err != nil {
-			return res, errors.NewError("ボタンを生成できません", err)
-		}
-
-		btns = append(btns, btn)
-	}
-
-	channelID, err := domain.NewDiscordID(req.ChannelID)
-	if err != nil {
-		return res, errors.NewError("DiscordIDを生成できません", err)
-	}
-
-	res, err = text.NewTextAction(
-		eventID, order, content, btns, req.IsResponse, req.IsEphemeral, channelID,
-	)
-	if err != nil {
-		return res, errors.NewError("テキストアクションを生成できません", err)
-	}
-
-	gw, err := gateway.NewGateway(tx)
-	if err != nil {
-		return res, errors.NewError("Gatewayを作成できません", err)
-	}
-
-	if err = gw.Create(res); err != nil {
-		return res, errors.NewError("テキストアクションを保存できません", err)
-	}
-
-	return res, nil
+// テキストを返信するアクションのリクエストです
+type ReplyTextActionReq struct {
+	Content     string
+	IsEphemeral bool
+	ComponentID []string
 }
 
-// IDでアクションを取得します
-func FindByID(tx *gorm.DB, id string) (domain.Action, error) {
-	var res domain.Action
+// Embedを送信するアクションのリクエストです
+type SendEmbedActionReq struct {
+	ChannelID     string
+	Title         string
+	Content       string
+	ColorCode     int
+	ImageURL      string
+	DisplayAuthor bool
+}
 
-	actionID, err := domain.RestoreUUID(id)
+// Embedを返信するアクションのリクエストです
+type ReplyEmbedActionReq struct {
+	Title         string
+	Content       string
+	ColorCode     int
+	ImageURL      string
+	DisplayAuthor bool
+	IsEphemeral   bool
+}
+
+// ifBlockを作成します
+//
+// Actionは再帰を使用します。
+func CreateIfBlock(req IfBlockReq) (domain.IfBlock, error) {
+	condKind, err := condition.NewKind(req.Condition.Kind)
 	if err != nil {
-		return res, errors.NewError("idを復元できません", err)
+		return domain.IfBlock{}, errors.NewError("条件の種類を作成できません", err)
 	}
 
-	gw, err := gateway.NewGateway(tx)
+	expected, err := condition.NewExpected(req.Condition.Expected)
 	if err != nil {
-		return res, errors.NewError("Gatewayを作成できません", err)
+		return domain.IfBlock{}, errors.NewError("条件の期待値を作成できません", err)
 	}
 
-	res, err = gw.FindByID(actionID)
+	cond, err := condition.NewCondition(condKind, expected)
 	if err != nil {
-		return res, errors.NewError("アクションを取得できません", err)
+		return domain.IfBlock{}, errors.NewError("条件を作成できません", err)
 	}
 
-	return res, nil
+	// trueActionを作成
+	var trueActions []action.Action
+	for _, reqAct := range req.TrueAction {
+		act, err := CreateActionFromReq(reqAct)
+		if err != nil {
+			return domain.IfBlock{}, err
+		}
+		trueActions = append(trueActions, act)
+	}
+
+	// falseActionを作成
+	var falseActions []action.Action
+	for _, reqAct := range req.FalseAction {
+		act, err := CreateActionFromReq(reqAct)
+		if err != nil {
+			return domain.IfBlock{}, err
+		}
+		falseActions = append(falseActions, act)
+	}
+
+	ifBlock, err := domain.NewIfBlock(cond, trueActions, falseActions)
+	if err != nil {
+		return domain.IfBlock{}, errors.NewError("IfBlockを作成できません", err)
+	}
+
+	return ifBlock, nil
+}
+
+// リクエストからActionを作成します
+func CreateActionFromReq(req any) (action.Action, error) {
+	switch reqTyped := req.(type) {
+	case SendTextActionReq:
+		chID, err := domain.NewDiscordID(reqTyped.ChannelID)
+		if err != nil {
+			return nil, errors.NewError("DiscordIDを作成できません", err)
+		}
+
+		c, err := action.NewContent(reqTyped.Content)
+		if err != nil {
+			return nil, errors.NewError("Contentを作成できません", err)
+		}
+
+		componentID := make([]domain.UUID, len(reqTyped.ComponentID))
+		for _, id := range reqTyped.ComponentID {
+			cpID, err := domain.RestoreUUID(id)
+			if err != nil {
+				return nil, errors.NewError("UUIDを作成できません", err)
+			}
+			componentID = append(componentID, cpID)
+		}
+
+		sendText, err := send_text.NewSendText(chID, c, componentID)
+		if err != nil {
+			return nil, errors.NewError("テキストアクションを作成できません", err)
+		}
+
+		return sendText, nil
+	case ReplyTextActionReq:
+		c, err := action.NewContent(reqTyped.Content)
+		if err != nil {
+			return nil, errors.NewError("Contentを作成できません", err)
+		}
+
+		componentID := make([]domain.UUID, len(reqTyped.ComponentID))
+		for _, id := range reqTyped.ComponentID {
+			cpID, err := domain.RestoreUUID(id)
+			if err != nil {
+				return nil, errors.NewError("UUIDを作成できません", err)
+			}
+			componentID = append(componentID, cpID)
+		}
+
+		replyText, err := reply_text.NewReplyText(c, reqTyped.IsEphemeral, componentID)
+		if err != nil {
+			return nil, errors.NewError("テキストアクションを作成できません", err)
+		}
+
+		return replyText, nil
+	case SendEmbedActionReq:
+		chID, err := domain.NewDiscordID(reqTyped.ChannelID)
+		if err != nil {
+			return nil, errors.NewError("DiscordIDを作成できません", err)
+		}
+
+		title, err := action.NewTitle(reqTyped.Title)
+		if err != nil {
+			return nil, errors.NewError("Titleを作成できません", err)
+		}
+
+		content, err := action.NewContent(reqTyped.Content)
+		if err != nil {
+			return nil, errors.NewError("Contentを作成できません", err)
+		}
+
+		colorCode, err := action.NewColorCode(reqTyped.ColorCode)
+		if err != nil {
+			return nil, errors.NewError("ColorCodeを作成できません", err)
+		}
+
+		imageURL, err := domain.NewURL(reqTyped.ImageURL)
+		if err != nil {
+			return nil, errors.NewError("URLを作成できません", err)
+		}
+
+		sendEmbed, err := send_embed.NewSendEmbed(chID, title, content, colorCode, imageURL, reqTyped.DisplayAuthor)
+		if err != nil {
+			return nil, errors.NewError("Embedアクションを作成できません", err)
+		}
+
+		return sendEmbed, nil
+	case ReplyEmbedActionReq:
+		title, err := action.NewTitle(reqTyped.Title)
+		if err != nil {
+			return nil, errors.NewError("Titleを作成できません", err)
+		}
+
+		content, err := action.NewContent(reqTyped.Content)
+		if err != nil {
+			return nil, errors.NewError("Contentを作成できません", err)
+		}
+
+		colorCode, err := action.NewColorCode(reqTyped.ColorCode)
+		if err != nil {
+			return nil, errors.NewError("ColorCodeを作成できません", err)
+		}
+
+		imageURL, err := domain.NewURL(reqTyped.ImageURL)
+		if err != nil {
+			return nil, errors.NewError("URLを作成できません", err)
+		}
+
+		replyEmbed, err := reply_embed.NewReplyEmbed(
+			title,
+			content,
+			colorCode,
+			imageURL,
+			reqTyped.DisplayAuthor,
+			reqTyped.IsEphemeral,
+		)
+		if err != nil {
+			return nil, errors.NewError("Embedアクションを作成できません", err)
+		}
+
+		return replyEmbed, nil
+	case IfBlockReq:
+		condKind, err := condition.NewKind(reqTyped.Condition.Kind)
+		if err != nil {
+			return nil, errors.NewError("条件の種類を作成できません", err)
+		}
+
+		expected, err := condition.NewExpected(reqTyped.Condition.Expected)
+		if err != nil {
+			return nil, errors.NewError("条件の期待値を作成できません", err)
+		}
+
+		cond, err := condition.NewCondition(condKind, expected)
+		if err != nil {
+			return nil, errors.NewError("条件を作成できません", err)
+		}
+
+		// IfBlockReq の場合は、中の`Action`を再帰的に処理する
+		var trueActions []action.Action
+		for _, reqAct := range reqTyped.TrueAction {
+			act, err := CreateActionFromReq(reqAct)
+			if err != nil {
+				return nil, err
+			}
+			trueActions = append(trueActions, act)
+		}
+
+		var falseActions []action.Action
+		for _, reqAct := range reqTyped.FalseAction {
+			act, err := CreateActionFromReq(reqAct)
+			if err != nil {
+				return nil, err
+			}
+			falseActions = append(falseActions, act)
+		}
+
+		ifBlock, err := domain.NewIfBlock(cond, trueActions, falseActions)
+		if err != nil {
+			return nil, errors.NewError("IfBlockを作成できません", err)
+		}
+
+		return ifBlock, nil
+	default:
+		return nil, errors.NewError("未知のアクションタイプです")
+	}
 }

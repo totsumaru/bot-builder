@@ -3,11 +3,9 @@ package gateway
 import (
 	"encoding/json"
 
-	"github.com/totsumaru/bot-builder/context/action/domain"
-	"github.com/totsumaru/bot-builder/context/action/domain/text"
-	"github.com/totsumaru/bot-builder/context/action/gateway/database"
+	"github.com/totsumaru/bot-builder/context/task/domain"
+	"github.com/totsumaru/bot-builder/context/task/gateway/database"
 	"github.com/totsumaru/bot-builder/lib/errors"
-	"github.com/totsumaru/bot-builder/lib/seeker"
 	"gorm.io/gorm"
 )
 
@@ -28,17 +26,17 @@ func NewGateway(tx *gorm.DB) (Gateway, error) {
 	return res, nil
 }
 
-// アクションを新規作成します
+// タスクを新規作成します
 //
 // 同じIDのレコードが存在する場合はエラーを返します。
-func (g Gateway) Create(act domain.Action) error {
-	dbAction, err := castToDBStruct(act)
+func (g Gateway) Create(task domain.Task) error {
+	dbTask, err := castToDBStruct(task)
 	if err != nil {
 		return errors.NewError("ドメインモデルをDBの構造体に変換できません", err)
 	}
 
 	// 新しいレコードをデータベースに保存
-	result := g.tx.Create(&dbAction)
+	result := g.tx.Create(&dbTask)
 	if result.Error != nil {
 		return errors.NewError("レコードを保存できませんでした", result.Error)
 	}
@@ -51,17 +49,17 @@ func (g Gateway) Create(act domain.Action) error {
 }
 
 // 更新します
-func (g Gateway) Update(u domain.Action) error {
-	dbAction, err := castToDBStruct(u)
+func (g Gateway) Update(u domain.Task) error {
+	dbTask, err := castToDBStruct(u)
 	if err != nil {
 		return errors.NewError("ドメインモデルをDBの構造体に変換できません", err)
 	}
 
 	// IDに基づいてレコードを更新
-	result := g.tx.Model(&database.Action{}).Where(
+	result := g.tx.Model(&database.Task{}).Where(
 		"id = ?",
-		dbAction.ID,
-	).Updates(&dbAction)
+		dbTask.ID,
+	).Updates(&dbTask)
 	if result.Error != nil {
 		return errors.NewError("更新できません", result.Error)
 	}
@@ -77,16 +75,16 @@ func (g Gateway) Update(u domain.Action) error {
 // IDでアクションを取得します
 //
 // レコードが存在しない場合はエラーを返します。
-func (g Gateway) FindByID(id domain.UUID) (domain.Action, error) {
-	var res domain.Action
+func (g Gateway) FindByID(id domain.UUID) (domain.Task, error) {
+	var res domain.Task
 
-	var dbAction database.Action
-	if err := g.tx.First(&dbAction, "id = ?", id.String()).Error; err != nil {
+	var dbTask database.Task
+	if err := g.tx.First(&dbTask, "id = ?", id.String()).Error; err != nil {
 		return res, errors.NewError("IDでアクションを取得できません", err)
 	}
 
 	// DB->ドメインモデルに変換します
-	res, err := castToDomainModel(dbAction)
+	res, err := castToDomainModel(dbTask)
 	if err != nil {
 		return res, errors.NewError("DBをドメインモデルに変換できません", err)
 	}
@@ -97,16 +95,16 @@ func (g Gateway) FindByID(id domain.UUID) (domain.Action, error) {
 // イベントIDでアクションを取得します
 //
 // レコードが存在しない場合はエラーを返します。
-func (g Gateway) FindByEventID(eventID domain.UUID) (domain.Action, error) {
-	var res domain.Action
+func (g Gateway) FindByEventID(eventID domain.UUID) (domain.Task, error) {
+	var res domain.Task
 
-	var dbAction database.Action
-	if err := g.tx.First(&dbAction, "event_id = ?", eventID.String()).Error; err != nil {
-		return res, errors.NewError("イベントIDでActionを取得できません", err)
+	var dbTask database.Task
+	if err := g.tx.First(&dbTask, "event_id = ?", eventID.String()).Error; err != nil {
+		return res, errors.NewError("イベントIDでTaskを取得できません", err)
 	}
 
 	// DB->ドメインモデルに変換します
-	res, err := castToDomainModel(dbAction)
+	res, err := castToDomainModel(dbTask)
 	if err != nil {
 		return res, errors.NewError("DBをドメインモデルに変換できません", err)
 	}
@@ -117,18 +115,18 @@ func (g Gateway) FindByEventID(eventID domain.UUID) (domain.Action, error) {
 // FOR UPDATEでアクションを取得します
 //
 // レコードが存在しない場合はエラーを返します。
-func (g Gateway) FindByIDForUpdate(id domain.UUID) (domain.Action, error) {
-	var res domain.Action
+func (g Gateway) FindByIDForUpdate(id domain.UUID) (domain.Task, error) {
+	var res domain.Task
 
-	var dbAction database.Action
+	var dbTask database.Task
 	if err := g.tx.Set("gorm:query_option", "FOR UPDATE").First(
-		&dbAction, "id = ?", id.String(),
+		&dbTask, "id = ?", id.String(),
 	).Error; err != nil {
 		return res, errors.NewError("IDでアクションを取得できません", err)
 	}
 
 	// DB->ドメインモデルに変換します
-	res, err := castToDomainModel(dbAction)
+	res, err := castToDomainModel(dbTask)
 	if err != nil {
 		return res, errors.NewError("DBをドメインモデルに変換できません", err)
 	}
@@ -141,41 +139,29 @@ func (g Gateway) FindByIDForUpdate(id domain.UUID) (domain.Action, error) {
 // =============
 
 // ドメインモデルをDBの構造体に変換します
-func castToDBStruct(actionInterface domain.Action) (database.Action, error) {
-	res := database.Action{}
+func castToDBStruct(task domain.Task) (database.Task, error) {
+	dbTask := database.Task{}
 
-	b, err := json.Marshal(&actionInterface)
+	b, err := json.Marshal(&task)
 	if err != nil {
-		return res, errors.NewError("Marshalに失敗しました", err)
+		return dbTask, errors.NewError("Marshalに失敗しました", err)
 	}
 
-	res.ID = actionInterface.ID().String()
-	res.EventID = actionInterface.EventID().String()
-	res.Data = b
+	dbTask.ID = task.ID().String()
+	dbTask.ServerID = task.ServerID().String()
+	dbTask.ApplicationID = task.ApplicationID().String()
+	dbTask.Data = b
 
-	return res, nil
+	return dbTask, nil
 }
 
 // DBの構造体からドメインモデルに変換します
-//
-// kindの種類によって、返す構造体が変わります。
-func castToDomainModel(dbAction database.Action) (domain.Action, error) {
-	// 一度、map[string]interface{}に変換します
-	m := map[string]interface{}{}
-	if err := json.Unmarshal(dbAction.Data, &m); err != nil {
-		return nil, errors.NewError("Unmarshalに失敗しました", err)
+func castToDomainModel(dbTask database.Task) (domain.Task, error) {
+	task := domain.Task{}
+
+	if err := json.Unmarshal(dbTask.Data, &task); err != nil {
+		return task, errors.NewError("Unmarshalに失敗しました", err)
 	}
 
-	// kindの種類によって、返す構造体が変わります
-	kind := seeker.Str(m, []string{"kind", "value"})
-	switch kind {
-	case domain.ActionKindText:
-		res := text.TextAction{}
-		if err := json.Unmarshal(dbAction.Data, &res); err != nil {
-			return nil, errors.NewError("TextActionでUnmarshalに失敗しました", err)
-		}
-		return res, nil
-	}
-
-	return nil, errors.NewError("不明なActionの種類です")
+	return task, nil
 }

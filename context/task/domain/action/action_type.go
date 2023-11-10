@@ -11,6 +11,7 @@ const (
 	ActionTypeSendEmbed  = "SEND_EMBED"
 	ActionTypeReplyText  = "REPLY_TEXT"
 	ActionTypeReplyEmbed = "REPLY_EMBED"
+	ActionTypeIfBlock    = "IF_BLOCK"
 )
 
 // アクションタイプです
@@ -42,7 +43,8 @@ func (a ActionType) validate() error {
 	case ActionTypeSendText,
 		ActionTypeSendEmbed,
 		ActionTypeReplyText,
-		ActionTypeReplyEmbed:
+		ActionTypeReplyEmbed,
+		ActionTypeIfBlock:
 	default:
 		return errors.NewError("アクションタイプが不正です")
 	}

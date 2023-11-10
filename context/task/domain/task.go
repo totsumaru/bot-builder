@@ -6,24 +6,24 @@ import (
 
 // タスクです
 type Task struct {
-	id       UUID
-	serverID DiscordID
-	appID    UUID
-	ifBlock  IfBlock
+	id            UUID
+	serverID      DiscordID
+	applicationID UUID
+	ifBlock       IfBlock
 }
 
 // タスクを生成します
 func NewTask(
 	id UUID,
 	serverID DiscordID,
-	appID UUID,
+	applicationID UUID,
 	ifBlock IfBlock,
 ) (Task, error) {
 	task := Task{
-		id:       id,
-		serverID: serverID,
-		appID:    appID,
-		ifBlock:  ifBlock,
+		id:            id,
+		serverID:      serverID,
+		applicationID: applicationID,
+		ifBlock:       ifBlock,
 	}
 
 	if err := task.validate(); err != nil {
@@ -44,8 +44,8 @@ func (t Task) ServerID() DiscordID {
 }
 
 // アプリケーションIDを返します
-func (t Task) AppID() UUID {
-	return t.appID
+func (t Task) ApplicationID() UUID {
+	return t.applicationID
 }
 
 // ifブロックを返します
@@ -61,15 +61,15 @@ func (t Task) validate() error {
 // JSONに変換します
 func (t Task) MarshalJSON() ([]byte, error) {
 	data := struct {
-		ID       UUID      `json:"id"`
-		ServerID DiscordID `json:"server_id"`
-		AppID    UUID      `json:"app_id"`
-		IfBlock  IfBlock   `json:"if_block"`
+		ID            UUID      `json:"id"`
+		ServerID      DiscordID `json:"server_id"`
+		ApplicationID UUID      `json:"application_id"`
+		IfBlock       IfBlock   `json:"if_block"`
 	}{
-		ID:       t.id,
-		ServerID: t.serverID,
-		AppID:    t.appID,
-		IfBlock:  t.ifBlock,
+		ID:            t.id,
+		ServerID:      t.serverID,
+		ApplicationID: t.applicationID,
+		IfBlock:       t.ifBlock,
 	}
 
 	return json.Marshal(data)
@@ -78,10 +78,10 @@ func (t Task) MarshalJSON() ([]byte, error) {
 // JSONから復元します
 func (t *Task) UnmarshalJSON(data []byte) error {
 	var v struct {
-		ID       UUID      `json:"id"`
-		ServerID DiscordID `json:"server_id"`
-		AppID    UUID      `json:"app_id"`
-		IfBlock  IfBlock   `json:"if_block"`
+		ID            UUID      `json:"id"`
+		ServerID      DiscordID `json:"server_id"`
+		ApplicationID UUID      `json:"application_id"`
+		IfBlock       IfBlock   `json:"if_block"`
 	}
 
 	if err := json.Unmarshal(data, &v); err != nil {
@@ -90,7 +90,7 @@ func (t *Task) UnmarshalJSON(data []byte) error {
 
 	t.id = v.ID
 	t.serverID = v.ServerID
-	t.appID = v.AppID
+	t.applicationID = v.ApplicationID
 	t.ifBlock = v.IfBlock
 
 	return nil
