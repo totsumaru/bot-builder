@@ -57,7 +57,7 @@ func (g Gateway) Update(component domain.Component) error {
 	}
 
 	// IDに基づいてレコードを更新
-	result := g.tx.Model(&database.Component{}).Where(
+	result := g.tx.Model(&componentDB.Component{}).Where(
 		"id = ?",
 		dbComponent.ID,
 	).Updates(&dbComponent)
@@ -79,7 +79,7 @@ func (g Gateway) Update(component domain.Component) error {
 func (g Gateway) FindByID(id context.UUID) (domain.Component, error) {
 	var res domain.Component
 
-	var dbComponent database.Component
+	var dbComponent componentDB.Component
 	if err := g.tx.First(&dbComponent, "id = ?", id.String()).Error; err != nil {
 		return res, errors.NewError("IDでアクションを取得できません", err)
 	}
@@ -99,7 +99,7 @@ func (g Gateway) FindByID(id context.UUID) (domain.Component, error) {
 func (g Gateway) FindByEventID(eventID context.UUID) (domain.Component, error) {
 	var res domain.Component
 
-	var dbComponent database.Component
+	var dbComponent componentDB.Component
 	if err := g.tx.First(&dbComponent, "event_id = ?", eventID.String()).Error; err != nil {
 		return res, errors.NewError("イベントIDでコンポーネントを取得できません", err)
 	}
@@ -119,7 +119,7 @@ func (g Gateway) FindByEventID(eventID context.UUID) (domain.Component, error) {
 func (g Gateway) FindByIDForUpdate(id context.UUID) (domain.Component, error) {
 	var res domain.Component
 
-	var dbComponent database.Component
+	var dbComponent componentDB.Component
 	if err := g.tx.Set("gorm:query_option", "FOR UPDATE").First(
 		&dbComponent, "id = ?", id.String(),
 	).Error; err != nil {
@@ -138,7 +138,7 @@ func (g Gateway) FindByIDForUpdate(id context.UUID) (domain.Component, error) {
 // 削除します
 func (g Gateway) Delete(id context.UUID) error {
 	// IDに基づいてレコードを削除
-	result := g.tx.Delete(&database.Component{}, "id = ?", id.String())
+	result := g.tx.Delete(&componentDB.Component{}, "id = ?", id.String())
 	if result.Error != nil {
 		return errors.NewError("削除できません", result.Error)
 	}
@@ -156,8 +156,8 @@ func (g Gateway) Delete(id context.UUID) error {
 // =============
 
 // ドメインモデルをDBの構造体に変換します
-func castToDBStruct(component domain.Component) (database.Component, error) {
-	dbComponent := database.Component{}
+func castToDBStruct(component domain.Component) (componentDB.Component, error) {
+	dbComponent := componentDB.Component{}
 
 	b, err := json.Marshal(&component)
 	if err != nil {
@@ -173,7 +173,7 @@ func castToDBStruct(component domain.Component) (database.Component, error) {
 }
 
 // DBの構造体からドメインモデルに変換します
-func castToDomainModel(dbComponent database.Component) (domain.Component, error) {
+func castToDomainModel(dbComponent componentDB.Component) (domain.Component, error) {
 	var component domain.Component
 
 	if err := json.Unmarshal(dbComponent.Data, &component); err != nil {

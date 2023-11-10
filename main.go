@@ -13,8 +13,9 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/totsumaru/bot-builder/api"
 	"github.com/totsumaru/bot-builder/bot/handler"
-	actionDB "github.com/totsumaru/bot-builder/context/action/gateway/database"
-	eventDB "github.com/totsumaru/bot-builder/context/event/gateway/database"
+	applicationDB "github.com/totsumaru/bot-builder/context/application/gateway/database"
+	componentDB "github.com/totsumaru/bot-builder/context/component/gateway/database"
+	taskDB "github.com/totsumaru/bot-builder/context/task/gateway/database"
 	"github.com/totsumaru/bot-builder/lib/errors"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -74,7 +75,11 @@ func main() {
 
 	// テーブルが存在していない場合のみテーブルを作成します
 	// 存在している場合はスキーマを同期します
-	if err = db.AutoMigrate(&eventDB.Event{}, &actionDB.Action{}); err != nil {
+	if err = db.AutoMigrate(
+		&applicationDB.Application{},
+		&taskDB.Task{},
+		&componentDB.Component{},
+	); err != nil {
 		panic(errors.NewError("テーブルのスキーマが一致しません", err))
 	}
 

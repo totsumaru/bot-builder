@@ -1,4 +1,4 @@
-package database
+package componentDB
 
 // コンポーネントのDBスキーマです
 type Component struct {

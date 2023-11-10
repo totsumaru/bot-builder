@@ -22,6 +22,10 @@ type IfBlockReq struct {
 	FalseAction []any
 }
 
+// ==============================================
+// Actionのリクエスト
+// ==============================================
+
 // テキストを送信するアクションのリクエストです
 type SendTextActionReq struct {
 	ChannelID   string
@@ -55,6 +59,10 @@ type ReplyEmbedActionReq struct {
 	DisplayAuthor    bool
 	IsEphemeral      bool
 }
+
+// ==============================================
+// 共通処理
+// ==============================================
 
 // ifBlockを作成します
 //

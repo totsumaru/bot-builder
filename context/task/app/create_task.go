@@ -16,7 +16,7 @@ type CreateTaskReq struct {
 }
 
 // タスクを作成します
-func CreateTextTask(tx *gorm.DB, req CreateTaskReq) (domain.Task, error) {
+func CreateTask(tx *gorm.DB, req CreateTaskReq) (domain.Task, error) {
 	id, err := context.NewUUID()
 	if err != nil {
 		return domain.Task{}, errors.NewError("UUIDを作成できません", err)

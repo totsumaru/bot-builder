@@ -2,16 +2,23 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/totsumaru/bot-builder/api/register/action"
-	"github.com/totsumaru/bot-builder/api/register/event"
+	applicationCreate "github.com/totsumaru/bot-builder/api/application/create"
+	"github.com/totsumaru/bot-builder/api/application/update/name"
+	buttonCreate "github.com/totsumaru/bot-builder/api/component/button/create"
+	"github.com/totsumaru/bot-builder/api/task/create"
 	"gorm.io/gorm"
 )
 
 // ルートを設定します
 func RegisterRouter(e *gin.Engine, db *gorm.DB) {
 	Route(e)
-	event.RegisterEvent(e, db)
-	action.RegisterAction(e, db)
+	// application
+	applicationCreate.CreateApplication(e, db)
+	name.UpdateApplicationName(e, db)
+	// component
+	buttonCreate.CreateButtonComponent(e, db)
+	// task
+	create.CreateTask(e, db)
 }
 
 // ルートです
