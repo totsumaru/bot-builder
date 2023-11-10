@@ -3,7 +3,7 @@ package send_text
 import (
 	"encoding/json"
 
-	"github.com/totsumaru/bot-builder/context/task/domain"
+	"github.com/totsumaru/bot-builder/context"
 	"github.com/totsumaru/bot-builder/context/task/domain/action"
 	"github.com/totsumaru/bot-builder/lib/errors"
 )
@@ -11,16 +11,16 @@ import (
 // テキストを送信するアクションです
 type SendText struct {
 	actionType  action.ActionType
-	channelID   domain.DiscordID
+	channelID   context.DiscordID
 	content     action.Content
-	componentID []domain.UUID // コンポーネントのID
+	componentID []context.UUID // コンポーネントのID
 }
 
 // テキストを送信するアクションを生成します
 func NewSendText(
-	channelID domain.DiscordID,
+	channelID context.DiscordID,
 	content action.Content,
-	componentID []domain.UUID,
+	componentID []context.UUID,
 ) (SendText, error) {
 	at, err := action.NewActionType(action.ActionTypeSendText)
 	if err != nil {
@@ -47,7 +47,7 @@ func (s SendText) ActionType() action.ActionType {
 }
 
 // チャンネルIDを返します
-func (s SendText) ChannelID() domain.DiscordID {
+func (s SendText) ChannelID() context.DiscordID {
 	return s.channelID
 }
 
@@ -57,7 +57,7 @@ func (s SendText) Content() action.Content {
 }
 
 // コンポーネントのIDを返します
-func (s SendText) ComponentID() []domain.UUID {
+func (s SendText) ComponentID() []context.UUID {
 	return s.componentID
 }
 
@@ -70,9 +70,9 @@ func (s SendText) validate() error {
 func (s SendText) MarshalJSON() ([]byte, error) {
 	data := struct {
 		ActionType  action.ActionType `json:"action_type"`
-		ChannelID   domain.DiscordID  `json:"channel_id"`
+		ChannelID   context.DiscordID `json:"channel_id"`
 		Content     action.Content    `json:"content"`
-		ComponentID []domain.UUID     `json:"component_id"`
+		ComponentID []context.UUID    `json:"component_id"`
 	}{
 		ActionType:  s.actionType,
 		ChannelID:   s.channelID,
@@ -87,9 +87,9 @@ func (s SendText) MarshalJSON() ([]byte, error) {
 func (s *SendText) UnmarshalJSON(b []byte) error {
 	data := struct {
 		ActionType  action.ActionType `json:"action_type"`
-		ChannelID   domain.DiscordID  `json:"channel_id"`
+		ChannelID   context.DiscordID `json:"channel_id"`
 		Content     action.Content    `json:"content"`
-		ComponentID []domain.UUID     `json:"component_id"`
+		ComponentID []context.UUID    `json:"component_id"`
 	}{}
 
 	if err := json.Unmarshal(b, &data); err != nil {

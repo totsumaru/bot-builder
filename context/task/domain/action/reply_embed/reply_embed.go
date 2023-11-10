@@ -3,20 +3,20 @@ package reply_embed
 import (
 	"encoding/json"
 
-	"github.com/totsumaru/bot-builder/context/task/domain"
+	"github.com/totsumaru/bot-builder/context"
 	"github.com/totsumaru/bot-builder/context/task/domain/action"
 	"github.com/totsumaru/bot-builder/lib/errors"
 )
 
 // Embedのテキストを返信するアクションです
 type ReplyEmbed struct {
-	actionType    action.ActionType
-	title         action.Title
-	content       action.Content
-	colorCode     action.ColorCode
-	imageURL      domain.URL
-	displayAuthor bool
-	isEphemeral   bool
+	actionType       action.ActionType
+	title            action.Title
+	content          action.Content
+	colorCode        action.ColorCode
+	imageComponentID context.UUID
+	displayAuthor    bool
+	isEphemeral      bool
 }
 
 // Embedのテキストを返信するアクションを生成します
@@ -24,7 +24,7 @@ func NewReplyEmbed(
 	title action.Title,
 	content action.Content,
 	colorCode action.ColorCode,
-	imageURL domain.URL,
+	imageComponentID context.UUID,
 	displayAuthor bool,
 	isEphemeral bool,
 ) (ReplyEmbed, error) {
@@ -34,13 +34,13 @@ func NewReplyEmbed(
 	}
 
 	s := ReplyEmbed{
-		actionType:    at,
-		title:         title,
-		content:       content,
-		colorCode:     colorCode,
-		imageURL:      imageURL,
-		displayAuthor: displayAuthor,
-		isEphemeral:   isEphemeral,
+		actionType:       at,
+		title:            title,
+		content:          content,
+		colorCode:        colorCode,
+		imageComponentID: imageComponentID,
+		displayAuthor:    displayAuthor,
+		isEphemeral:      isEphemeral,
 	}
 
 	if err = s.validate(); err != nil {
@@ -71,8 +71,8 @@ func (s ReplyEmbed) ColorCode() action.ColorCode {
 }
 
 // 画像URLを返します
-func (s ReplyEmbed) ImageURL() domain.URL {
-	return s.imageURL
+func (s ReplyEmbed) ImageComponentID() context.UUID {
+	return s.imageComponentID
 }
 
 // Authorを表示するかどうかを返します
@@ -93,19 +93,19 @@ func (s ReplyEmbed) validate() error {
 // JSONに変換します
 func (s ReplyEmbed) MarshalJSON() ([]byte, error) {
 	data := struct {
-		Title         action.Title     `json:"title"`
-		Content       action.Content   `json:"content"`
-		ColorCode     action.ColorCode `json:"color_code"`
-		ImageURL      domain.URL       `json:"image_url"`
-		DisplayAuthor bool             `json:"display_author"`
-		IsEphemeral   bool             `json:"is_ephemeral"`
+		Title            action.Title     `json:"title"`
+		Content          action.Content   `json:"content"`
+		ColorCode        action.ColorCode `json:"color_code"`
+		ImageComponentID context.UUID     `json:"image_component_id"`
+		DisplayAuthor    bool             `json:"display_author"`
+		IsEphemeral      bool             `json:"is_ephemeral"`
 	}{
-		Title:         s.title,
-		Content:       s.content,
-		ColorCode:     s.colorCode,
-		ImageURL:      s.imageURL,
-		DisplayAuthor: s.displayAuthor,
-		IsEphemeral:   s.isEphemeral,
+		Title:            s.title,
+		Content:          s.content,
+		ColorCode:        s.colorCode,
+		ImageComponentID: s.imageComponentID,
+		DisplayAuthor:    s.displayAuthor,
+		IsEphemeral:      s.isEphemeral,
 	}
 
 	return json.Marshal(data)
@@ -114,12 +114,12 @@ func (s ReplyEmbed) MarshalJSON() ([]byte, error) {
 // JSONから変換します
 func (s *ReplyEmbed) UnmarshalJSON(b []byte) error {
 	data := struct {
-		Title         action.Title     `json:"title"`
-		Content       action.Content   `json:"content"`
-		ColorCode     action.ColorCode `json:"color_code"`
-		ImageURL      domain.URL       `json:"image_url"`
-		DisplayAuthor bool             `json:"display_author"`
-		IsEphemeral   bool             `json:"is_ephemeral"`
+		Title            action.Title     `json:"title"`
+		Content          action.Content   `json:"content"`
+		ColorCode        action.ColorCode `json:"color_code"`
+		ImageComponentID context.UUID     `json:"image_component_id"`
+		DisplayAuthor    bool             `json:"display_author"`
+		IsEphemeral      bool             `json:"is_ephemeral"`
 	}{}
 
 	if err := json.Unmarshal(b, &data); err != nil {
@@ -129,7 +129,7 @@ func (s *ReplyEmbed) UnmarshalJSON(b []byte) error {
 	s.title = data.Title
 	s.content = data.Content
 	s.colorCode = data.ColorCode
-	s.imageURL = data.ImageURL
+	s.imageComponentID = data.ImageComponentID
 	s.displayAuthor = data.DisplayAuthor
 	s.isEphemeral = data.IsEphemeral
 

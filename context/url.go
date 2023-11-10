@@ -1,4 +1,4 @@
-package domain
+package context
 
 import (
 	"encoding/json"
@@ -70,10 +70,6 @@ func (u *URL) UnmarshalJSON(b []byte) error {
 	}
 
 	u.value = data.URL
-
-	if err := u.validate(); err != nil {
-		return errors.NewError("検証に失敗しました", err)
-	}
 
 	return nil
 }

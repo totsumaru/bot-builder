@@ -3,7 +3,7 @@ package reply_text
 import (
 	"encoding/json"
 
-	"github.com/totsumaru/bot-builder/context/task/domain"
+	"github.com/totsumaru/bot-builder/context"
 	"github.com/totsumaru/bot-builder/context/task/domain/action"
 	"github.com/totsumaru/bot-builder/lib/errors"
 )
@@ -13,14 +13,14 @@ type ReplyText struct {
 	actionType  action.ActionType
 	content     action.Content
 	isEphemeral bool
-	componentID []domain.UUID // コンポーネントのID
+	componentID []context.UUID // コンポーネントのID
 }
 
 // テキストを返信するアクションを生成します
 func NewReplyText(
 	content action.Content,
 	isEphemeral bool,
-	componentID []domain.UUID,
+	componentID []context.UUID,
 ) (ReplyText, error) {
 	at, err := action.NewActionType(action.ActionTypeReplyText)
 	if err != nil {
@@ -57,7 +57,7 @@ func (s ReplyText) IsEphemeral() bool {
 }
 
 // コンポーネントのIDを返します
-func (s ReplyText) ComponentID() []domain.UUID {
+func (s ReplyText) ComponentID() []context.UUID {
 	return s.componentID
 }
 
@@ -72,7 +72,7 @@ func (s ReplyText) MarshalJSON() ([]byte, error) {
 		ActionType  action.ActionType `json:"action_type"`
 		Content     action.Content    `json:"content"`
 		IsEphemeral bool              `json:"is_ephemeral"`
-		ComponentID []domain.UUID     `json:"component_id"`
+		ComponentID []context.UUID    `json:"component_id"`
 	}{
 		ActionType:  s.actionType,
 		Content:     s.content,
@@ -89,7 +89,7 @@ func (s *ReplyText) UnmarshalJSON(b []byte) error {
 		ActionType  action.ActionType `json:"action_type"`
 		Content     action.Content    `json:"content"`
 		IsEphemeral bool              `json:"is_ephemeral"`
-		ComponentID []domain.UUID     `json:"component_id"`
+		ComponentID []context.UUID    `json:"component_id"`
 	}{}
 
 	if err := json.Unmarshal(b, &data); err != nil {

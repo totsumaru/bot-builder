@@ -2,21 +2,23 @@ package domain
 
 import (
 	"encoding/json"
+
+	"github.com/totsumaru/bot-builder/context"
 )
 
 // タスクです
 type Task struct {
-	id            UUID
-	serverID      DiscordID
-	applicationID UUID
+	id            context.UUID
+	serverID      context.DiscordID
+	applicationID context.UUID
 	ifBlock       IfBlock
 }
 
 // タスクを生成します
 func NewTask(
-	id UUID,
-	serverID DiscordID,
-	applicationID UUID,
+	id context.UUID,
+	serverID context.DiscordID,
+	applicationID context.UUID,
 	ifBlock IfBlock,
 ) (Task, error) {
 	task := Task{
@@ -34,17 +36,17 @@ func NewTask(
 }
 
 // IDを返します
-func (t Task) ID() UUID {
+func (t Task) ID() context.UUID {
 	return t.id
 }
 
 // サーバーIDを返します
-func (t Task) ServerID() DiscordID {
+func (t Task) ServerID() context.DiscordID {
 	return t.serverID
 }
 
 // アプリケーションIDを返します
-func (t Task) ApplicationID() UUID {
+func (t Task) ApplicationID() context.UUID {
 	return t.applicationID
 }
 
@@ -61,10 +63,10 @@ func (t Task) validate() error {
 // JSONに変換します
 func (t Task) MarshalJSON() ([]byte, error) {
 	data := struct {
-		ID            UUID      `json:"id"`
-		ServerID      DiscordID `json:"server_id"`
-		ApplicationID UUID      `json:"application_id"`
-		IfBlock       IfBlock   `json:"if_block"`
+		ID            context.UUID      `json:"id"`
+		ServerID      context.DiscordID `json:"server_id"`
+		ApplicationID context.UUID      `json:"application_id"`
+		IfBlock       IfBlock           `json:"if_block"`
 	}{
 		ID:            t.id,
 		ServerID:      t.serverID,
@@ -78,10 +80,10 @@ func (t Task) MarshalJSON() ([]byte, error) {
 // JSONから復元します
 func (t *Task) UnmarshalJSON(data []byte) error {
 	var v struct {
-		ID            UUID      `json:"id"`
-		ServerID      DiscordID `json:"server_id"`
-		ApplicationID UUID      `json:"application_id"`
-		IfBlock       IfBlock   `json:"if_block"`
+		ID            context.UUID      `json:"id"`
+		ServerID      context.DiscordID `json:"server_id"`
+		ApplicationID context.UUID      `json:"application_id"`
+		IfBlock       IfBlock           `json:"if_block"`
 	}
 
 	if err := json.Unmarshal(data, &v); err != nil {

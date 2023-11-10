@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/totsumaru/bot-builder/context"
 	"github.com/totsumaru/bot-builder/context/task/domain"
 	"github.com/totsumaru/bot-builder/context/task/gateway"
 	"github.com/totsumaru/bot-builder/lib/errors"
@@ -11,7 +12,7 @@ import (
 func FindByID(tx *gorm.DB, id string) (domain.Task, error) {
 	var res domain.Task
 
-	taskID, err := domain.RestoreUUID(id)
+	taskID, err := context.RestoreUUID(id)
 	if err != nil {
 		return res, errors.NewError("idを復元できません", err)
 	}

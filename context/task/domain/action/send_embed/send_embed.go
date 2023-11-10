@@ -3,29 +3,29 @@ package send_embed
 import (
 	"encoding/json"
 
-	"github.com/totsumaru/bot-builder/context/task/domain"
+	"github.com/totsumaru/bot-builder/context"
 	"github.com/totsumaru/bot-builder/context/task/domain/action"
 	"github.com/totsumaru/bot-builder/lib/errors"
 )
 
 // Embedのテキストを送信するアクションです
 type SendEmbed struct {
-	actionType    action.ActionType
-	channelID     domain.DiscordID
-	title         action.Title
-	content       action.Content
-	colorCode     action.ColorCode
-	imageURL      domain.URL
-	displayAuthor bool
+	actionType       action.ActionType
+	channelID        context.DiscordID
+	title            action.Title
+	content          action.Content
+	colorCode        action.ColorCode
+	imageComponentID context.UUID // 画像コンポーネントのID
+	displayAuthor    bool
 }
 
 // Embedのテキストを送信するアクションを生成します
 func NewSendEmbed(
-	channelID domain.DiscordID,
+	channelID context.DiscordID,
 	title action.Title,
 	content action.Content,
 	colorCode action.ColorCode,
-	imageURL domain.URL,
+	imageComponentID context.UUID,
 	displayAuthor bool,
 ) (SendEmbed, error) {
 	at, err := action.NewActionType(action.ActionTypeSendEmbed)
@@ -34,13 +34,13 @@ func NewSendEmbed(
 	}
 
 	s := SendEmbed{
-		actionType:    at,
-		channelID:     channelID,
-		title:         title,
-		content:       content,
-		colorCode:     colorCode,
-		imageURL:      imageURL,
-		displayAuthor: displayAuthor,
+		actionType:       at,
+		channelID:        channelID,
+		title:            title,
+		content:          content,
+		colorCode:        colorCode,
+		imageComponentID: imageComponentID,
+		displayAuthor:    displayAuthor,
 	}
 
 	if err = s.validate(); err != nil {
@@ -56,7 +56,7 @@ func (s SendEmbed) ActionType() action.ActionType {
 }
 
 // チャンネルIDを返します
-func (s SendEmbed) ChannelID() domain.DiscordID {
+func (s SendEmbed) ChannelID() context.DiscordID {
 	return s.channelID
 }
 
@@ -76,8 +76,8 @@ func (s SendEmbed) ColorCode() action.ColorCode {
 }
 
 // 画像URLを返します
-func (s SendEmbed) ImageURL() domain.URL {
-	return s.imageURL
+func (s SendEmbed) ImageComponentID() context.UUID {
+	return s.imageComponentID
 }
 
 // Authorを表示するかどうかを返します
@@ -93,21 +93,21 @@ func (s SendEmbed) validate() error {
 // JSONに変換します
 func (s SendEmbed) MarshalJSON() ([]byte, error) {
 	data := struct {
-		ActionType    action.ActionType `json:"action_type"`
-		ChannelID     domain.DiscordID  `json:"channel_id"`
-		Title         action.Title      `json:"title"`
-		Content       action.Content    `json:"content"`
-		ColorCode     action.ColorCode  `json:"color_code"`
-		ImageURL      domain.URL        `json:"image_url"`
-		DisplayAuthor bool              `json:"display_author"`
+		ActionType       action.ActionType `json:"action_type"`
+		ChannelID        context.DiscordID `json:"channel_id"`
+		Title            action.Title      `json:"title"`
+		Content          action.Content    `json:"content"`
+		ColorCode        action.ColorCode  `json:"color_code"`
+		ImageComponentID context.UUID      `json:"image_component_id"`
+		DisplayAuthor    bool              `json:"display_author"`
 	}{
-		ActionType:    s.actionType,
-		ChannelID:     s.channelID,
-		Title:         s.title,
-		Content:       s.content,
-		ColorCode:     s.colorCode,
-		ImageURL:      s.imageURL,
-		DisplayAuthor: s.displayAuthor,
+		ActionType:       s.actionType,
+		ChannelID:        s.channelID,
+		Title:            s.title,
+		Content:          s.content,
+		ColorCode:        s.colorCode,
+		ImageComponentID: s.imageComponentID,
+		DisplayAuthor:    s.displayAuthor,
 	}
 
 	return json.Marshal(data)
@@ -116,13 +116,13 @@ func (s SendEmbed) MarshalJSON() ([]byte, error) {
 // JSONから変換します
 func (s *SendEmbed) UnmarshalJSON(b []byte) error {
 	data := struct {
-		ActionType    action.ActionType `json:"action_type"`
-		ChannelID     domain.DiscordID  `json:"channel_id"`
-		Title         action.Title      `json:"title"`
-		Content       action.Content    `json:"content"`
-		ColorCode     action.ColorCode  `json:"color_code"`
-		ImageURL      domain.URL        `json:"image_url"`
-		DisplayAuthor bool              `json:"display_author"`
+		ActionType       action.ActionType `json:"action_type"`
+		ChannelID        context.DiscordID `json:"channel_id"`
+		Title            action.Title      `json:"title"`
+		Content          action.Content    `json:"content"`
+		ColorCode        action.ColorCode  `json:"color_code"`
+		ImageComponentID context.UUID      `json:"image_component_id"`
+		DisplayAuthor    bool              `json:"display_author"`
 	}{}
 
 	if err := json.Unmarshal(b, &data); err != nil {
@@ -134,7 +134,7 @@ func (s *SendEmbed) UnmarshalJSON(b []byte) error {
 	s.title = data.Title
 	s.content = data.Content
 	s.colorCode = data.ColorCode
-	s.imageURL = data.ImageURL
+	s.imageComponentID = data.ImageComponentID
 	s.displayAuthor = data.DisplayAuthor
 
 	return nil

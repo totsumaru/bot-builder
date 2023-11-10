@@ -1,25 +1,34 @@
 package app
 
 import (
+	"github.com/totsumaru/bot-builder/context"
 	"github.com/totsumaru/bot-builder/context/task/domain"
 	"github.com/totsumaru/bot-builder/context/task/gateway"
 	"github.com/totsumaru/bot-builder/lib/errors"
 	"gorm.io/gorm"
 )
 
+// タスクを更新するリクエストです
+type UpdateTaskReq struct {
+	ID            string
+	ServerID      string
+	ApplicationID string
+	IfBlock       IfBlockReq
+}
+
 // タスクを更新します
 func UpdateTextTask(tx *gorm.DB, req UpdateTaskReq) (domain.Task, error) {
-	id, err := domain.RestoreUUID(req.ID)
+	id, err := context.RestoreUUID(req.ID)
 	if err != nil {
 		return domain.Task{}, errors.NewError("UUIDを復元できません", err)
 	}
 
-	serverID, err := domain.NewDiscordID(req.ServerID)
+	serverID, err := context.NewDiscordID(req.ServerID)
 	if err != nil {
 		return domain.Task{}, errors.NewError("DiscordIDを作成できません", err)
 	}
 
-	applicationID, err := domain.RestoreUUID(req.ApplicationID)
+	applicationID, err := context.RestoreUUID(req.ApplicationID)
 	if err != nil {
 		return domain.Task{}, errors.NewError("UUIDを作成できません", err)
 	}

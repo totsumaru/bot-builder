@@ -1,25 +1,33 @@
 package app
 
 import (
+	"github.com/totsumaru/bot-builder/context"
 	"github.com/totsumaru/bot-builder/context/task/domain"
 	"github.com/totsumaru/bot-builder/context/task/gateway"
 	"github.com/totsumaru/bot-builder/lib/errors"
 	"gorm.io/gorm"
 )
 
+// タスクを作成するリクエストです
+type CreateTaskReq struct {
+	ServerID      string
+	ApplicationID string
+	IfBlock       IfBlockReq
+}
+
 // タスクを作成します
 func CreateTextTask(tx *gorm.DB, req CreateTaskReq) (domain.Task, error) {
-	id, err := domain.NewUUID()
+	id, err := context.NewUUID()
 	if err != nil {
 		return domain.Task{}, errors.NewError("UUIDを作成できません", err)
 	}
 
-	serverID, err := domain.NewDiscordID(req.ServerID)
+	serverID, err := context.NewDiscordID(req.ServerID)
 	if err != nil {
 		return domain.Task{}, errors.NewError("DiscordIDを作成できません", err)
 	}
 
-	applicationID, err := domain.RestoreUUID(req.ApplicationID)
+	applicationID, err := context.RestoreUUID(req.ApplicationID)
 	if err != nil {
 		return domain.Task{}, errors.NewError("UUIDを作成できません", err)
 	}

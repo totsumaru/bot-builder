@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/totsumaru/bot-builder/context"
 	"github.com/totsumaru/bot-builder/context/task/domain"
 	"github.com/totsumaru/bot-builder/context/task/domain/action"
 	"github.com/totsumaru/bot-builder/context/task/domain/action/reply_embed"
@@ -10,19 +11,6 @@ import (
 	"github.com/totsumaru/bot-builder/context/task/domain/condition"
 	"github.com/totsumaru/bot-builder/lib/errors"
 )
-
-// タスクを作成するリクエストです
-type CreateTaskReq struct {
-	ServerID      string
-	ApplicationID string
-	IfBlock       IfBlockReq
-}
-
-// タスクを更新するリクエストです
-type UpdateTaskReq struct {
-	ID string
-	CreateTaskReq
-}
 
 // ifブロックのリクエストです
 type IfBlockReq struct {
@@ -50,22 +38,22 @@ type ReplyTextActionReq struct {
 
 // Embedを送信するアクションのリクエストです
 type SendEmbedActionReq struct {
-	ChannelID     string
-	Title         string
-	Content       string
-	ColorCode     int
-	ImageURL      string
-	DisplayAuthor bool
+	ChannelID        string
+	Title            string
+	Content          string
+	ColorCode        int
+	ImageComponentID string
+	DisplayAuthor    bool
 }
 
 // Embedを返信するアクションのリクエストです
 type ReplyEmbedActionReq struct {
-	Title         string
-	Content       string
-	ColorCode     int
-	ImageURL      string
-	DisplayAuthor bool
-	IsEphemeral   bool
+	Title            string
+	Content          string
+	ColorCode        int
+	ImageComponentID string
+	DisplayAuthor    bool
+	IsEphemeral      bool
 }
 
 // ifBlockを作成します
@@ -119,7 +107,7 @@ func CreateIfBlock(req IfBlockReq) (domain.IfBlock, error) {
 func CreateActionFromReq(req any) (action.Action, error) {
 	switch reqTyped := req.(type) {
 	case SendTextActionReq:
-		chID, err := domain.NewDiscordID(reqTyped.ChannelID)
+		chID, err := context.NewDiscordID(reqTyped.ChannelID)
 		if err != nil {
 			return nil, errors.NewError("DiscordIDを作成できません", err)
 		}
@@ -129,9 +117,9 @@ func CreateActionFromReq(req any) (action.Action, error) {
 			return nil, errors.NewError("Contentを作成できません", err)
 		}
 
-		componentID := make([]domain.UUID, len(reqTyped.ComponentID))
+		componentID := make([]context.UUID, len(reqTyped.ComponentID))
 		for _, id := range reqTyped.ComponentID {
-			cpID, err := domain.RestoreUUID(id)
+			cpID, err := context.RestoreUUID(id)
 			if err != nil {
 				return nil, errors.NewError("UUIDを作成できません", err)
 			}
@@ -150,9 +138,9 @@ func CreateActionFromReq(req any) (action.Action, error) {
 			return nil, errors.NewError("Contentを作成できません", err)
 		}
 
-		componentID := make([]domain.UUID, len(reqTyped.ComponentID))
+		componentID := make([]context.UUID, len(reqTyped.ComponentID))
 		for _, id := range reqTyped.ComponentID {
-			cpID, err := domain.RestoreUUID(id)
+			cpID, err := context.RestoreUUID(id)
 			if err != nil {
 				return nil, errors.NewError("UUIDを作成できません", err)
 			}
@@ -166,7 +154,7 @@ func CreateActionFromReq(req any) (action.Action, error) {
 
 		return replyText, nil
 	case SendEmbedActionReq:
-		chID, err := domain.NewDiscordID(reqTyped.ChannelID)
+		chID, err := context.NewDiscordID(reqTyped.ChannelID)
 		if err != nil {
 			return nil, errors.NewError("DiscordIDを作成できません", err)
 		}
@@ -186,12 +174,12 @@ func CreateActionFromReq(req any) (action.Action, error) {
 			return nil, errors.NewError("ColorCodeを作成できません", err)
 		}
 
-		imageURL, err := domain.NewURL(reqTyped.ImageURL)
+		imageComponentID, err := context.RestoreUUID(reqTyped.ImageComponentID)
 		if err != nil {
 			return nil, errors.NewError("URLを作成できません", err)
 		}
 
-		sendEmbed, err := send_embed.NewSendEmbed(chID, title, content, colorCode, imageURL, reqTyped.DisplayAuthor)
+		sendEmbed, err := send_embed.NewSendEmbed(chID, title, content, colorCode, imageComponentID, reqTyped.DisplayAuthor)
 		if err != nil {
 			return nil, errors.NewError("Embedアクションを作成できません", err)
 		}
@@ -213,7 +201,7 @@ func CreateActionFromReq(req any) (action.Action, error) {
 			return nil, errors.NewError("ColorCodeを作成できません", err)
 		}
 
-		imageURL, err := domain.NewURL(reqTyped.ImageURL)
+		imageComponentID, err := context.RestoreUUID(reqTyped.ImageComponentID)
 		if err != nil {
 			return nil, errors.NewError("URLを作成できません", err)
 		}
@@ -222,7 +210,7 @@ func CreateActionFromReq(req any) (action.Action, error) {
 			title,
 			content,
 			colorCode,
-			imageURL,
+			imageComponentID,
 			reqTyped.DisplayAuthor,
 			reqTyped.IsEphemeral,
 		)
