@@ -39,5 +39,5 @@ func CreateApplication(tx *gorm.DB, serverID string, name string) (domain.Applic
 		return domain.Application{}, errors.NewError("アプリケーションの作成に失敗しました", err)
 	}
 
-	return domain.Application{}, nil
+	return application, nil
 }
