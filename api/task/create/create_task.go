@@ -78,7 +78,7 @@ func castIfBlockReqToAppReq(apiIfBlockReq IfBlockReq) (app.IfBlockReq, error) {
 	for _, apiReqTrueAction := range apiIfBlockReq.TrueAction {
 		appReq, err := castApiActionReqToAppActionReq(apiReqTrueAction)
 		if err != nil {
-			return app.IfBlockReq{}, errors.NewError("Actionの型を変換できません", nil)
+			return app.IfBlockReq{}, errors.NewError("Actionの型を変換できません", err)
 		}
 		trueActions = append(trueActions, appReq)
 	}
@@ -125,6 +125,7 @@ func castApiActionReqToAppActionReq(apiAction map[string]any) (any, error) {
 			ColorCode:        seeker.Int(apiAction, []string{"color_code"}),
 			ImageComponentID: seeker.Str(apiAction, []string{"image_component_id"}),
 			DisplayAuthor:    seeker.Bool(apiAction, []string{"display_author"}),
+			ComponentID:      seeker.SliceString(apiAction, []string{"component_id"}),
 		}
 		return appReq, nil
 	case action.ActionTypeReplyEmbed:
@@ -135,6 +136,7 @@ func castApiActionReqToAppActionReq(apiAction map[string]any) (any, error) {
 			ImageComponentID: seeker.Str(apiAction, []string{"image_component_id"}),
 			DisplayAuthor:    seeker.Bool(apiAction, []string{"display_author"}),
 			IsEphemeral:      seeker.Bool(apiAction, []string{"is_ephemeral"}),
+			ComponentID:      seeker.SliceString(apiAction, []string{"component_id"}),
 		}
 		return appReq, nil
 	case action.ActionTypeIfBlock:
@@ -142,7 +144,7 @@ func castApiActionReqToAppActionReq(apiAction map[string]any) (any, error) {
 		for _, apiReqTrueAction := range seeker.Slice(apiAction, []string{"true_action"}) {
 			appReq, err := castApiActionReqToAppActionReq(apiReqTrueAction)
 			if err != nil {
-				return app.IfBlockReq{}, errors.NewError("Actionの型を変換できません", nil)
+				return app.IfBlockReq{}, errors.NewError("Actionの型を変換できません", err)
 			}
 			trueAction = append(trueAction, appReq)
 		}
@@ -151,7 +153,7 @@ func castApiActionReqToAppActionReq(apiAction map[string]any) (any, error) {
 		for _, apiReqFalseAction := range seeker.Slice(apiAction, []string{"false_action"}) {
 			appReq, err := castApiActionReqToAppActionReq(apiReqFalseAction)
 			if err != nil {
-				return app.IfBlockReq{}, errors.NewError("Actionの型を変換できません", nil)
+				return app.IfBlockReq{}, errors.NewError("Actionの型を変換できません", err)
 			}
 			falseAction = append(falseAction, appReq)
 		}
@@ -164,6 +166,6 @@ func castApiActionReqToAppActionReq(apiAction map[string]any) (any, error) {
 
 		return appReq, nil
 	default:
-		return app.IfBlockReq{}, errors.NewError("Actionの型を変換できません", nil)
+		return app.IfBlockReq{}, errors.NewError("ActionTypeが不正です")
 	}
 }

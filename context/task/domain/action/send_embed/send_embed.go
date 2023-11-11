@@ -15,8 +15,9 @@ type SendEmbed struct {
 	title            action.Title
 	content          action.Content
 	colorCode        action.ColorCode
-	imageComponentID context.UUID // 画像コンポーネントのID
+	imageComponentID context.UUID
 	displayAuthor    bool
+	componentID      []context.UUID
 }
 
 // Embedのテキストを送信するアクションを生成します
@@ -27,6 +28,7 @@ func NewSendEmbed(
 	colorCode action.ColorCode,
 	imageComponentID context.UUID,
 	displayAuthor bool,
+	componentID []context.UUID,
 ) (SendEmbed, error) {
 	at, err := action.NewActionType(action.ActionTypeSendEmbed)
 	if err != nil {
@@ -41,6 +43,7 @@ func NewSendEmbed(
 		colorCode:        colorCode,
 		imageComponentID: imageComponentID,
 		displayAuthor:    displayAuthor,
+		componentID:      componentID,
 	}
 
 	if err = s.validate(); err != nil {
@@ -85,6 +88,11 @@ func (s SendEmbed) DisplayAuthor() bool {
 	return s.displayAuthor
 }
 
+// コンポーネントのIDを返します
+func (s SendEmbed) ComponentID() []context.UUID {
+	return s.componentID
+}
+
 // 検証します
 func (s SendEmbed) validate() error {
 	return nil
@@ -100,6 +108,7 @@ func (s SendEmbed) MarshalJSON() ([]byte, error) {
 		ColorCode        action.ColorCode  `json:"color_code"`
 		ImageComponentID context.UUID      `json:"image_component_id"`
 		DisplayAuthor    bool              `json:"display_author"`
+		ComponentID      []context.UUID    `json:"component_id"`
 	}{
 		ActionType:       s.actionType,
 		ChannelID:        s.channelID,
@@ -108,6 +117,7 @@ func (s SendEmbed) MarshalJSON() ([]byte, error) {
 		ColorCode:        s.colorCode,
 		ImageComponentID: s.imageComponentID,
 		DisplayAuthor:    s.displayAuthor,
+		ComponentID:      s.componentID,
 	}
 
 	return json.Marshal(data)
@@ -123,6 +133,7 @@ func (s *SendEmbed) UnmarshalJSON(b []byte) error {
 		ColorCode        action.ColorCode  `json:"color_code"`
 		ImageComponentID context.UUID      `json:"image_component_id"`
 		DisplayAuthor    bool              `json:"display_author"`
+		ComponentID      []context.UUID    `json:"component_id"`
 	}{}
 
 	if err := json.Unmarshal(b, &data); err != nil {
@@ -136,6 +147,7 @@ func (s *SendEmbed) UnmarshalJSON(b []byte) error {
 	s.colorCode = data.ColorCode
 	s.imageComponentID = data.ImageComponentID
 	s.displayAuthor = data.DisplayAuthor
+	s.componentID = data.ComponentID
 
 	return nil
 }

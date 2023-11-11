@@ -48,6 +48,7 @@ type SendEmbedActionReq struct {
 	ColorCode        int
 	ImageComponentID string
 	DisplayAuthor    bool
+	ComponentID      []string
 }
 
 // Embedを返信するアクションのリクエストです
@@ -58,6 +59,7 @@ type ReplyEmbedActionReq struct {
 	ImageComponentID string
 	DisplayAuthor    bool
 	IsEphemeral      bool
+	ComponentID      []string
 }
 
 // ==============================================
@@ -187,7 +189,18 @@ func CreateActionFromReq(req any) (action.Action, error) {
 			return nil, errors.NewError("画像のコンポーネントIDを作成できません", err)
 		}
 
-		sendEmbed, err := send_embed.NewSendEmbed(chID, title, content, colorCode, imageComponentID, reqTyped.DisplayAuthor)
+		componentIDs := make([]context.UUID, 0)
+		for _, id := range reqTyped.ComponentID {
+			cpID, err := context.RestoreUUID(id)
+			if err != nil {
+				return nil, errors.NewError("UUIDを作成できません", err)
+			}
+			componentIDs = append(componentIDs, cpID)
+		}
+
+		sendEmbed, err := send_embed.NewSendEmbed(
+			chID, title, content, colorCode, imageComponentID, reqTyped.DisplayAuthor, componentIDs,
+		)
 		if err != nil {
 			return nil, errors.NewError("Embedアクションを作成できません", err)
 		}
@@ -214,13 +227,17 @@ func CreateActionFromReq(req any) (action.Action, error) {
 			return nil, errors.NewError("画像のコンポーネントIDを作成できません", err)
 		}
 
+		componentIDs := make([]context.UUID, 0)
+		for _, id := range reqTyped.ComponentID {
+			cpID, err := context.RestoreUUID(id)
+			if err != nil {
+				return nil, errors.NewError("UUIDを作成できません", err)
+			}
+			componentIDs = append(componentIDs, cpID)
+		}
+
 		replyEmbed, err := reply_embed.NewReplyEmbed(
-			title,
-			content,
-			colorCode,
-			imageComponentID,
-			reqTyped.DisplayAuthor,
-			reqTyped.IsEphemeral,
+			title, content, colorCode, imageComponentID, reqTyped.DisplayAuthor, reqTyped.IsEphemeral, componentIDs,
 		)
 		if err != nil {
 			return nil, errors.NewError("Embedアクションを作成できません", err)

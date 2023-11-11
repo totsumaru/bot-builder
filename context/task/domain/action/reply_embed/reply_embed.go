@@ -17,6 +17,7 @@ type ReplyEmbed struct {
 	imageComponentID context.UUID
 	displayAuthor    bool
 	isEphemeral      bool
+	componentID      []context.UUID
 }
 
 // Embedのテキストを返信するアクションを生成します
@@ -27,6 +28,7 @@ func NewReplyEmbed(
 	imageComponentID context.UUID,
 	displayAuthor bool,
 	isEphemeral bool,
+	componentID []context.UUID,
 ) (ReplyEmbed, error) {
 	at, err := action.NewActionType(action.ActionTypeReplyEmbed)
 	if err != nil {
@@ -41,6 +43,7 @@ func NewReplyEmbed(
 		imageComponentID: imageComponentID,
 		displayAuthor:    displayAuthor,
 		isEphemeral:      isEphemeral,
+		componentID:      componentID,
 	}
 
 	if err = s.validate(); err != nil {
@@ -85,6 +88,11 @@ func (s ReplyEmbed) IsEphemeral() bool {
 	return s.isEphemeral
 }
 
+// コンポーネントのIDを返します
+func (s ReplyEmbed) ComponentID() []context.UUID {
+	return s.componentID
+}
+
 // 検証します
 func (s ReplyEmbed) validate() error {
 	return nil
@@ -100,6 +108,7 @@ func (s ReplyEmbed) MarshalJSON() ([]byte, error) {
 		ImageComponentID context.UUID      `json:"image_component_id"`
 		DisplayAuthor    bool              `json:"display_author"`
 		IsEphemeral      bool              `json:"is_ephemeral"`
+		ComponentID      []context.UUID    `json:"component_id"`
 	}{
 		ActionType:       s.actionType,
 		Title:            s.title,
@@ -108,6 +117,7 @@ func (s ReplyEmbed) MarshalJSON() ([]byte, error) {
 		ImageComponentID: s.imageComponentID,
 		DisplayAuthor:    s.displayAuthor,
 		IsEphemeral:      s.isEphemeral,
+		ComponentID:      s.componentID,
 	}
 
 	return json.Marshal(data)
@@ -123,6 +133,7 @@ func (s *ReplyEmbed) UnmarshalJSON(b []byte) error {
 		ImageComponentID context.UUID      `json:"image_component_id"`
 		DisplayAuthor    bool              `json:"display_author"`
 		IsEphemeral      bool              `json:"is_ephemeral"`
+		ComponentID      []context.UUID    `json:"component_id"`
 	}{}
 
 	if err := json.Unmarshal(b, &data); err != nil {
@@ -136,6 +147,7 @@ func (s *ReplyEmbed) UnmarshalJSON(b []byte) error {
 	s.imageComponentID = data.ImageComponentID
 	s.displayAuthor = data.DisplayAuthor
 	s.isEphemeral = data.IsEphemeral
+	s.componentID = data.ComponentID
 
 	return nil
 }

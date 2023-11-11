@@ -35,22 +35,24 @@ type ReplyTextActionReq struct {
 
 // Embedを送信するアクションのリクエストです
 type SendEmbedActionReq struct {
-	ActionType       string `json:"action_type"`
-	ChannelID        string `json:"channel_id"`
-	Title            string `json:"title"`
-	Content          string `json:"content"`
-	ColorCode        int    `json:"color_code"`
-	ImageComponentID string `json:"image_component_id"`
-	DisplayAuthor    bool   `json:"display_author"`
+	ActionType       string   `json:"action_type"`
+	ChannelID        string   `json:"channel_id"`
+	Title            string   `json:"title"`
+	Content          string   `json:"content"`
+	ColorCode        int      `json:"color_code"`
+	ImageComponentID string   `json:"image_component_id"`
+	DisplayAuthor    bool     `json:"display_author"`
+	ComponentID      []string `json:"component_id"`
 }
 
 // Embedを返信するアクションのリクエストです
 type ReplyEmbedActionReq struct {
-	ActionType       string `json:"action_type"`
-	Title            string `json:"title"`
-	Content          string `json:"content"`
-	ColorCode        int    `json:"color_code"`
-	ImageComponentID string `json:"image_component_id"`
-	DisplayAuthor    bool   `json:"display_author"`
-	IsEphemeral      bool   `json:"is_ephemeral"`
+	ActionType       string   `json:"action_type"`
+	Title            string   `json:"title"`
+	Content          string   `json:"content"`
+	ColorCode        int      `json:"color_code"`
+	ImageComponentID string   `json:"image_component_id"`
+	DisplayAuthor    bool     `json:"display_author"`
+	IsEphemeral      bool     `json:"is_ephemeral"`
+	ComponentID      []string `json:"component_id"`
 }

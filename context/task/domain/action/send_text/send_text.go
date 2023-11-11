@@ -13,7 +13,7 @@ type SendText struct {
 	actionType  action.ActionType
 	channelID   context.DiscordID
 	content     action.Content
-	componentID []context.UUID // コンポーネントのID
+	componentID []context.UUID
 }
 
 // テキストを送信するアクションを生成します
