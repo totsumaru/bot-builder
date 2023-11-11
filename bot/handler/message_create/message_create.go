@@ -23,20 +23,23 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 
 		for _, domainTask := range domainTasks {
-			switch domainTask.IfBlock().Condition().Kind().String() {
-			case condition.KindCreatedMessageIs:
-				expectedText := domainTask.IfBlock().Condition().Expected().String()
-				if m.Content == expectedText {
-					for _, act := range domainTask.IfBlock().TrueAction() {
-						if err = executeAction(s, m, act); err != nil {
-							return errors.NewError("trueアクションを実行できません", err)
-						}
+			// `送られたメッセージがxだったら` の条件でなければ、実行されません
+			kind := domainTask.IfBlock().Condition().Kind().String()
+			if kind != condition.KindCreatedMessageIs {
+				continue
+			}
+
+			expectedText := domainTask.IfBlock().Condition().Expected().String()
+			if m.Content == expectedText {
+				for _, act := range domainTask.IfBlock().TrueAction() {
+					if err = executeAction(s, m, act); err != nil {
+						return errors.NewError("trueアクションを実行できません", err)
 					}
-				} else {
-					for _, act := range domainTask.IfBlock().FalseAction() {
-						if err = executeAction(s, m, act); err != nil {
-							return errors.NewError("falseアクションを実行できません", err)
-						}
+				}
+			} else {
+				for _, act := range domainTask.IfBlock().FalseAction() {
+					if err = executeAction(s, m, act); err != nil {
+						return errors.NewError("falseアクションを実行できません", err)
 					}
 				}
 			}

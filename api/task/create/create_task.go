@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/totsumaru/bot-builder/context/task/app"
+	"github.com/totsumaru/bot-builder/context/task/domain/action"
 	"github.com/totsumaru/bot-builder/lib/errors"
 	"github.com/totsumaru/bot-builder/lib/seeker"
 	"gorm.io/gorm"
@@ -101,7 +102,7 @@ func castIfBlockReqToAppReq(apiIfBlockReq IfBlockReq) (app.IfBlockReq, error) {
 func castApiActionReqToAppActionReq(apiAction map[string]any) (any, error) {
 	actionType := seeker.Str(apiAction, []string{"action_type"})
 	switch actionType {
-	case ActionTypeSendText:
+	case action.ActionTypeSendText:
 		appReq := app.SendTextActionReq{
 			ChannelID:   seeker.Str(apiAction, []string{"channel_id"}),
 			Content:     seeker.Str(apiAction, []string{"content"}),
@@ -109,14 +110,14 @@ func castApiActionReqToAppActionReq(apiAction map[string]any) (any, error) {
 		}
 
 		return appReq, nil
-	case ActionTypeReplyText:
+	case action.ActionTypeReplyText:
 		appReq := app.ReplyTextActionReq{
 			Content:     seeker.Str(apiAction, []string{"content"}),
 			IsEphemeral: seeker.Bool(apiAction, []string{"is_ephemeral"}),
 			ComponentID: seeker.SliceString(apiAction, []string{"component_id"}),
 		}
 		return appReq, nil
-	case ActionTypeSendEmbed:
+	case action.ActionTypeSendEmbed:
 		appReq := app.SendEmbedActionReq{
 			ChannelID:        seeker.Str(apiAction, []string{"channel_id"}),
 			Title:            seeker.Str(apiAction, []string{"title"}),
@@ -126,7 +127,7 @@ func castApiActionReqToAppActionReq(apiAction map[string]any) (any, error) {
 			DisplayAuthor:    seeker.Bool(apiAction, []string{"display_author"}),
 		}
 		return appReq, nil
-	case ActionTypeReplyEmbed:
+	case action.ActionTypeReplyEmbed:
 		appReq := app.ReplyEmbedActionReq{
 			Title:            seeker.Str(apiAction, []string{"title"}),
 			Content:          seeker.Str(apiAction, []string{"content"}),
@@ -136,7 +137,7 @@ func castApiActionReqToAppActionReq(apiAction map[string]any) (any, error) {
 			IsEphemeral:      seeker.Bool(apiAction, []string{"is_ephemeral"}),
 		}
 		return appReq, nil
-	case ActionTypeIfBlock:
+	case action.ActionTypeIfBlock:
 		trueAction := make([]any, 0)
 		for _, apiReqTrueAction := range seeker.Slice(apiAction, []string{"true_action"}) {
 			appReq, err := castApiActionReqToAppActionReq(apiReqTrueAction)

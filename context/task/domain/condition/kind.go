@@ -13,13 +13,6 @@ const (
 	KindOperatorRoleHas  = "OperatorRoleHas"  // 操作を実行したユーザーがxのロールを持っていたら
 )
 
-var KindList = []string{
-	KindCreatedMessageIs,
-	KindClickedButtonIs,
-	KindOperatorIs,
-	KindOperatorRoleHas,
-}
-
 // 条件の種類です
 //
 // ifブロックの条件となる種別です。

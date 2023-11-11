@@ -1,13 +1,5 @@
 package create
 
-const (
-	ActionTypeIfBlock    = "if_block"
-	ActionTypeSendText   = "send_text"
-	ActionTypeReplyText  = "reply_text"
-	ActionTypeSendEmbed  = "send_embed"
-	ActionTypeReplyEmbed = "reply_embed"
-)
-
 // IfBlockのリクエストです
 type IfBlockReq struct {
 	ActionType string `json:"action_type"`
