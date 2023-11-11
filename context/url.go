@@ -35,6 +35,10 @@ func (u URL) IsEmpty() bool {
 
 // URLを検証します
 func (u URL) validate() error {
+	if u.IsEmpty() {
+		return nil
+	}
+
 	if !isValidURL(u.value) {
 		return errors.NewError("URLが不正です")
 	}

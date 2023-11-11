@@ -1,8 +1,6 @@
 package message_create
 
 import (
-	"fmt"
-
 	"github.com/bwmarrin/discordgo"
 	"github.com/totsumaru/bot-builder/bot"
 	"github.com/totsumaru/bot-builder/context/task/app"
@@ -53,13 +51,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 // アクションを実行します
-func executeAction(
-	s *discordgo.Session,
-	m *discordgo.MessageCreate,
-	act action.Action,
-) error {
-	fmt.Println("アクションタイプ: ", act.ActionType().String())
-
+func executeAction(s *discordgo.Session, m *discordgo.MessageCreate, act action.Action) error {
 	switch act.ActionType().String() {
 	case action.ActionTypeSendText:
 		sendText := act.(send_text.SendText)
