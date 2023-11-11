@@ -3,7 +3,8 @@ package message_create
 import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/totsumaru/bot-builder/bot"
-	"github.com/totsumaru/bot-builder/context/task/app"
+	componentApp "github.com/totsumaru/bot-builder/context/component/app"
+	taskApp "github.com/totsumaru/bot-builder/context/task/app"
 	"github.com/totsumaru/bot-builder/context/task/domain/action"
 	"github.com/totsumaru/bot-builder/context/task/domain/action/reply_embed"
 	"github.com/totsumaru/bot-builder/context/task/domain/action/send_text"
@@ -15,7 +16,7 @@ import (
 // メッセージが作成された時のハンドラです
 func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	err := bot.DB.Transaction(func(tx *gorm.DB) error {
-		domainTasks, err := app.FindByServerID(tx, m.GuildID)
+		domainTasks, err := taskApp.FindByServerID(tx, m.GuildID)
 		if err != nil {
 			return errors.NewError("タスクを取得できません", err)
 		}
@@ -50,15 +51,38 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
+// TODO: 優先度低: FindByIDsでボタンを複数一気に取れるようにする
 // アクションを実行します
 func executeAction(s *discordgo.Session, m *discordgo.MessageCreate, act action.Action) error {
 	switch act.ActionType().String() {
 	case action.ActionTypeSendText:
 		sendText := act.(send_text.SendText)
-		_, err := s.ChannelMessageSend(
-			m.ChannelID,
-			sendText.Content().String(),
-		)
+
+		btns := make([]discordgo.Button, 0)
+		for _, componentID := range sendText.ComponentID() {
+			btnComponent, err := componentApp.FindButtonByID(bot.DB, componentID.String())
+			if err != nil {
+				return errors.NewError("コンポーネントを取得できません", err)
+			}
+			btn := discordgo.Button{
+				Label:    btnComponent.Label().String(),
+				Style:    bot.ButtonStyleDomainToDiscord[btnComponent.Style().String()],
+				CustomID: btnComponent.ID().String(),
+			}
+			btns = append(btns, btn)
+		}
+
+		actions := discordgo.ActionsRow{}
+		for _, btn := range btns {
+			actions.Components = append(actions.Components, btn)
+		}
+
+		data := &discordgo.MessageSend{
+			Content:    sendText.Content().String(),
+			Components: []discordgo.MessageComponent{actions},
+		}
+
+		_, err := s.ChannelMessageSendComplex(m.ChannelID, data)
 		if err != nil {
 			return errors.NewError("メッセージを送信できません", err)
 		}
@@ -77,7 +101,32 @@ func executeAction(s *discordgo.Session, m *discordgo.MessageCreate, act action.
 			}
 		}
 
-		_, err := s.ChannelMessageSendEmbedReply(m.ChannelID, embed, m.Reference())
+		btns := make([]discordgo.Button, 0)
+		for _, componentID := range replyEmbed.ComponentID() {
+			btnComponent, err := componentApp.FindButtonByID(bot.DB, componentID.String())
+			if err != nil {
+				return errors.NewError("コンポーネントを取得できません", err)
+			}
+			btn := discordgo.Button{
+				Label:    btnComponent.Label().String(),
+				Style:    bot.ButtonStyleDomainToDiscord[btnComponent.Style().String()],
+				CustomID: btnComponent.ID().String(),
+			}
+			btns = append(btns, btn)
+		}
+
+		actions := discordgo.ActionsRow{}
+		for _, btn := range btns {
+			actions.Components = append(actions.Components, btn)
+		}
+
+		data := &discordgo.MessageSend{
+			Embed:      embed,
+			Components: []discordgo.MessageComponent{actions},
+			Reference:  m.Reference(),
+		}
+
+		_, err := s.ChannelMessageSendComplex(m.ChannelID, data)
 		if err != nil {
 			return errors.NewError("メッセージを送信できません", err)
 		}

@@ -5,8 +5,10 @@ import (
 
 	"github.com/totsumaru/bot-builder/context"
 	"github.com/totsumaru/bot-builder/context/component/domain"
+	"github.com/totsumaru/bot-builder/context/component/domain/button"
 	"github.com/totsumaru/bot-builder/context/component/gateway/database"
 	"github.com/totsumaru/bot-builder/lib/errors"
+	"github.com/totsumaru/bot-builder/lib/seeker"
 	"gorm.io/gorm"
 )
 
@@ -174,11 +176,27 @@ func castToDBStruct(component domain.Component) (componentDB.Component, error) {
 
 // DBの構造体からドメインモデルに変換します
 func castToDomainModel(dbComponent componentDB.Component) (domain.Component, error) {
-	var component domain.Component
-
-	if err := json.Unmarshal(dbComponent.Data, &component); err != nil {
-		return component, errors.NewError("Unmarshalに失敗しました", err)
+	m := map[string]any{}
+	if err := json.Unmarshal(dbComponent.Data, &m); err != nil {
+		return nil, errors.NewError("Unmarshalに失敗しました", err)
 	}
 
-	return component, nil
+	kind := seeker.Str(m, []string{"kind", "value"})
+	switch kind {
+	case domain.ComponentKindButton:
+		res := button.Button{}
+
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, errors.NewError("Marshalに失敗しました", err)
+		}
+
+		if err = json.Unmarshal(b, &res); err != nil {
+			return nil, errors.NewError("Unmarshalに失敗しました", err)
+		}
+
+		return res, nil
+	default:
+		return nil, errors.NewError("コンポーネントの種類が不正です")
+	}
 }
