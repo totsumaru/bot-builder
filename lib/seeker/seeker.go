@@ -243,6 +243,45 @@ func Slice(d map[string]interface{}, rp []string) []map[string]interface{} {
 	return empty
 }
 
+// SliceString は map[string]interface{} 型から string のスライスを取得します。
+// 指定されたキーが存在しない場合、または []interface{} 型でない場合は空のスライスを返します。
+func SliceString(d map[string]interface{}, rp []string) []string {
+	var empty []string
+
+	cp := rp[0]
+	rp = rp[1:]
+
+	i, ok := d[cp]
+	if !ok {
+		return empty
+	}
+
+	if len(rp) == 0 {
+		v, ok := i.([]interface{})
+		if !ok {
+			return empty
+		}
+
+		var mis []string
+		for _, m := range v {
+			mis = append(mis, m.(string))
+		}
+
+		return mis
+	}
+
+	if len(rp) > 0 {
+		m, ok := i.(map[string]interface{})
+		if !ok {
+			return empty
+		}
+
+		return SliceString(m, rp)
+	}
+
+	return empty
+}
+
 // dからrpで指定したキーを再帰的に検索してその値を取得します
 //
 // 値が見つからなかった場合やmap[stringはinterface{}型ではない場合は、空のmap[string]interface{}型を返します。
