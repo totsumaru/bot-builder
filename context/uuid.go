@@ -27,7 +27,13 @@ func NewUUID() (UUID, error) {
 }
 
 // IDを復元します
+//
+// 空を許容します。
 func RestoreUUID(id string) (UUID, error) {
+	if id == "" {
+		return UUID{}, nil
+	}
+
 	res := UUID{
 		value: id,
 	}

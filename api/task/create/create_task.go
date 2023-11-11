@@ -107,6 +107,7 @@ func castApiActionReqToAppActionReq(apiAction map[string]any) (any, error) {
 			Content:     seeker.Str(apiAction, []string{"content"}),
 			ComponentID: seeker.SliceString(apiAction, []string{"component_id"}),
 		}
+
 		return appReq, nil
 	case ActionTypeReplyText:
 		appReq := app.ReplyTextActionReq{

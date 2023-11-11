@@ -125,7 +125,7 @@ func CreateActionFromReq(req any) (action.Action, error) {
 			return nil, errors.NewError("Contentを作成できません", err)
 		}
 
-		componentID := make([]context.UUID, len(reqTyped.ComponentID))
+		componentID := make([]context.UUID, 0)
 		for _, id := range reqTyped.ComponentID {
 			cpID, err := context.RestoreUUID(id)
 			if err != nil {
@@ -146,7 +146,7 @@ func CreateActionFromReq(req any) (action.Action, error) {
 			return nil, errors.NewError("Contentを作成できません", err)
 		}
 
-		componentID := make([]context.UUID, len(reqTyped.ComponentID))
+		componentID := make([]context.UUID, 0)
 		for _, id := range reqTyped.ComponentID {
 			cpID, err := context.RestoreUUID(id)
 			if err != nil {
@@ -184,7 +184,7 @@ func CreateActionFromReq(req any) (action.Action, error) {
 
 		imageComponentID, err := context.RestoreUUID(reqTyped.ImageComponentID)
 		if err != nil {
-			return nil, errors.NewError("URLを作成できません", err)
+			return nil, errors.NewError("画像のコンポーネントIDを作成できません", err)
 		}
 
 		sendEmbed, err := send_embed.NewSendEmbed(chID, title, content, colorCode, imageComponentID, reqTyped.DisplayAuthor)
@@ -211,7 +211,7 @@ func CreateActionFromReq(req any) (action.Action, error) {
 
 		imageComponentID, err := context.RestoreUUID(reqTyped.ImageComponentID)
 		if err != nil {
-			return nil, errors.NewError("URLを作成できません", err)
+			return nil, errors.NewError("画像のコンポーネントIDを作成できません", err)
 		}
 
 		replyEmbed, err := reply_embed.NewReplyEmbed(
