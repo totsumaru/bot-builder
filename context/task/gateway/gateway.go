@@ -96,18 +96,22 @@ func (g Gateway) FindByID(id context.UUID) (domain.Task, error) {
 // イベントIDでアクションを取得します
 //
 // レコードが存在しない場合はエラーを返します。
-func (g Gateway) FindByEventID(eventID context.UUID) (domain.Task, error) {
-	var res domain.Task
+func (g Gateway) FindByServerID(serverID context.DiscordID) ([]domain.Task, error) {
+	res := make([]domain.Task, 0)
 
-	var dbTask database.Task
-	if err := g.tx.First(&dbTask, "event_id = ?", eventID.String()).Error; err != nil {
-		return res, errors.NewError("イベントIDでTaskを取得できません", err)
+	dbTask := make([]database.Task, 0)
+	if err := g.tx.Find(&dbTask, "server_id = ?", serverID.String()).Error; err != nil {
+		return res, errors.NewError("サーバーIDでTaskを取得できません", err)
 	}
 
 	// DB->ドメインモデルに変換します
-	res, err := castToDomainModel(dbTask)
-	if err != nil {
-		return res, errors.NewError("DBをドメインモデルに変換できません", err)
+	for _, v := range dbTask {
+		r, err := castToDomainModel(v)
+		if err != nil {
+			return res, errors.NewError("DBをドメインモデルに変換できません", err)
+		}
+
+		res = append(res, r)
 	}
 
 	return res, nil
