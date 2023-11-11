@@ -16,7 +16,6 @@ import (
 // ifブロックです
 //
 // trueAction/falseActionにはIfBlock/Actionのいずれかが入ります。
-// アクションの種類(IfBlockですが、trueAction/falseActionの中に入る可能性があるため、入れています）。
 type IfBlock struct {
 	actionType  action.ActionType
 	condition   condition.Condition // 条件
