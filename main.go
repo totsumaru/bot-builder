@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/totsumaru/bot-builder/api"
+	"github.com/totsumaru/bot-builder/bot"
 	"github.com/totsumaru/bot-builder/bot/handler"
 	applicationDB "github.com/totsumaru/bot-builder/context/application/gateway/database"
 	componentDB "github.com/totsumaru/bot-builder/context/component/gateway/database"
@@ -72,6 +73,8 @@ func main() {
 	if err != nil {
 		panic(errors.NewError("DBに接続できません", err))
 	}
+
+	bot.DB = db
 
 	// テーブルが存在していない場合のみテーブルを作成します
 	// 存在している場合はスキーマを同期します
