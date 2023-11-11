@@ -1,6 +1,8 @@
 package create
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/totsumaru/bot-builder/context/component/app"
 	"github.com/totsumaru/bot-builder/lib/errors"
@@ -62,6 +64,7 @@ func CreateButtonComponent(e *gin.Engine, db *gorm.DB) {
 			return nil
 		})
 		if err != nil {
+			fmt.Println(errors.NewError("エラーが発生しました", err))
 			c.JSON(500, gin.H{"message": "エラーが発生しました"})
 			return
 		}

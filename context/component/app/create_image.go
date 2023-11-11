@@ -33,7 +33,12 @@ func CreateImageComponent(tx *gorm.DB, req CreateImageComponentReq) (image.Image
 		return image.Image{}, errors.NewError("UUIDの生成に失敗しました", err)
 	}
 
-	core, err := domain.NewComponentCore(id, serverID, applicationID)
+	kind, err := domain.NewKind(domain.ComponentKindImage)
+	if err != nil {
+		return image.Image{}, errors.NewError("コンポーネントの種類の生成に失敗しました", err)
+	}
+
+	core, err := domain.NewComponentCore(id, serverID, applicationID, kind)
 	if err != nil {
 		return image.Image{}, errors.NewError("コンポーネントの共通部分の生成に失敗しました", err)
 	}

@@ -65,9 +65,9 @@ func (k Kind) validate() error {
 // 条件の種類をJSONに変換します
 func (k Kind) MarshalJSON() ([]byte, error) {
 	data := struct {
-		Kind string `json:"kind"`
+		Value string `json:"value"`
 	}{
-		Kind: k.value,
+		Value: k.value,
 	}
 
 	return json.Marshal(data)
@@ -76,18 +76,14 @@ func (k Kind) MarshalJSON() ([]byte, error) {
 // 条件の種類をJSONから復元します
 func (k *Kind) UnmarshalJSON(b []byte) error {
 	data := struct {
-		Kind string `json:"kind"`
+		Value string `json:"value"`
 	}{}
 
 	if err := json.Unmarshal(b, &data); err != nil {
 		return errors.NewError("JSONの変換に失敗しました", err)
 	}
 
-	k.value = data.Kind
-
-	if err := k.validate(); err != nil {
-		return errors.NewError("検証に失敗しました", err)
-	}
+	k.value = data.Value
 
 	return nil
 }

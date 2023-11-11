@@ -35,7 +35,12 @@ func CreateButtonComponent(tx *gorm.DB, req CreateButtonComponentReq) (button.Bu
 		return button.Button{}, errors.NewError("UUIDの生成に失敗しました", err)
 	}
 
-	core, err := domain.NewComponentCore(id, serverID, applicationID)
+	kind, err := domain.NewKind(domain.ComponentKindButton)
+	if err != nil {
+		return button.Button{}, errors.NewError("コンポーネントの種類の生成に失敗しました", err)
+	}
+
+	core, err := domain.NewComponentCore(id, serverID, applicationID, kind)
 	if err != nil {
 		return button.Button{}, errors.NewError("コンポーネントの共通部分の生成に失敗しました", err)
 	}

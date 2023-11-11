@@ -47,11 +47,13 @@ func (i Image) MarshalJSON() ([]byte, error) {
 		ID            context.UUID      `json:"id"`
 		ServerID      context.DiscordID `json:"server_id"`
 		ApplicationID context.UUID      `json:"application_id"`
+		Kind          domain.Kind       `json:"kind"`
 		URL           context.URL       `json:"url"`
 	}{
 		ID:            i.ID(),
 		ServerID:      i.ServerID(),
 		ApplicationID: i.ApplicationID(),
+		Kind:          i.Kind(),
 		URL:           i.url,
 	}
 
@@ -64,6 +66,7 @@ func (i *Image) UnmarshalJSON(b []byte) error {
 		ID            context.UUID      `json:"id"`
 		ServerID      context.DiscordID `json:"server_id"`
 		ApplicationID context.UUID      `json:"application_id"`
+		Kind          domain.Kind       `json:"kind"`
 		URL           context.URL       `json:"url"`
 	}{}
 
@@ -86,7 +89,12 @@ func (i *Image) UnmarshalJSON(b []byte) error {
 		return errors.NewError("ApplicationIDを復元できません", err)
 	}
 
-	i.ComponentCore, err = domain.NewComponentCore(id, serverID, appID)
+	kind, err := domain.NewKind(data.Kind.String())
+	if err != nil {
+		return errors.NewError("コンポーネントの種類を作成できません", err)
+	}
+
+	i.ComponentCore, err = domain.NewComponentCore(id, serverID, appID, kind)
 	if err != nil {
 		return errors.NewError("コンポーネントの共通の構造体を作成できません", err)
 	}
