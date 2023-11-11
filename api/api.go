@@ -5,6 +5,7 @@ import (
 	applicationCreate "github.com/totsumaru/bot-builder/api/application/create"
 	"github.com/totsumaru/bot-builder/api/application/update/name"
 	buttonCreate "github.com/totsumaru/bot-builder/api/component/button/create"
+	"github.com/totsumaru/bot-builder/api/component/button/update"
 	"github.com/totsumaru/bot-builder/api/task/create"
 	"gorm.io/gorm"
 )
@@ -17,6 +18,7 @@ func RegisterRouter(e *gin.Engine, db *gorm.DB) {
 	name.UpdateApplicationName(e, db)
 	// component
 	buttonCreate.CreateButtonComponent(e, db)
+	update.UpdateButtonComponent(e, db)
 	// task
 	create.CreateTask(e, db)
 }

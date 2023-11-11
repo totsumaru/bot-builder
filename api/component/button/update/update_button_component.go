@@ -22,6 +22,7 @@ type Res struct {
 	ID            string `json:"id"`
 	ServerID      string `json:"server_id"`
 	ApplicationID string `json:"application_id"`
+	Kind          string `json:"kind"`
 	Label         string `json:"label"`
 	Style         string `json:"style"`
 	URL           string `json:"url"`
@@ -57,6 +58,7 @@ func UpdateButtonComponent(e *gin.Engine, db *gorm.DB) {
 			res.ID = domainButton.ID().String()
 			res.ServerID = domainButton.ServerID().String()
 			res.ApplicationID = domainButton.ApplicationID().String()
+			res.Kind = domainButton.Kind().String()
 			res.Label = domainButton.Label().String()
 			res.Style = domainButton.Style().String()
 			res.URL = domainButton.URL().String()
