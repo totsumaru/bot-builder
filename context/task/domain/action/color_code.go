@@ -35,7 +35,7 @@ func NewColorCode(value int) (ColorCode, error) {
 }
 
 // カラーコードを返します
-func (c ColorCode) String() int {
+func (c ColorCode) Int() int {
 	return c.value
 }
 

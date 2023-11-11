@@ -93,13 +93,15 @@ func (s ReplyEmbed) validate() error {
 // JSONに変換します
 func (s ReplyEmbed) MarshalJSON() ([]byte, error) {
 	data := struct {
-		Title            action.Title     `json:"title"`
-		Content          action.Content   `json:"content"`
-		ColorCode        action.ColorCode `json:"color_code"`
-		ImageComponentID context.UUID     `json:"image_component_id"`
-		DisplayAuthor    bool             `json:"display_author"`
-		IsEphemeral      bool             `json:"is_ephemeral"`
+		ActionType       action.ActionType `json:"action_type"`
+		Title            action.Title      `json:"title"`
+		Content          action.Content    `json:"content"`
+		ColorCode        action.ColorCode  `json:"color_code"`
+		ImageComponentID context.UUID      `json:"image_component_id"`
+		DisplayAuthor    bool              `json:"display_author"`
+		IsEphemeral      bool              `json:"is_ephemeral"`
 	}{
+		ActionType:       s.actionType,
 		Title:            s.title,
 		Content:          s.content,
 		ColorCode:        s.colorCode,
@@ -114,18 +116,20 @@ func (s ReplyEmbed) MarshalJSON() ([]byte, error) {
 // JSONから変換します
 func (s *ReplyEmbed) UnmarshalJSON(b []byte) error {
 	data := struct {
-		Title            action.Title     `json:"title"`
-		Content          action.Content   `json:"content"`
-		ColorCode        action.ColorCode `json:"color_code"`
-		ImageComponentID context.UUID     `json:"image_component_id"`
-		DisplayAuthor    bool             `json:"display_author"`
-		IsEphemeral      bool             `json:"is_ephemeral"`
+		ActionType       action.ActionType `json:"action_type"`
+		Title            action.Title      `json:"title"`
+		Content          action.Content    `json:"content"`
+		ColorCode        action.ColorCode  `json:"color_code"`
+		ImageComponentID context.UUID      `json:"image_component_id"`
+		DisplayAuthor    bool              `json:"display_author"`
+		IsEphemeral      bool              `json:"is_ephemeral"`
 	}{}
 
 	if err := json.Unmarshal(b, &data); err != nil {
 		return err
 	}
 
+	s.actionType = data.ActionType
 	s.title = data.Title
 	s.content = data.Content
 	s.colorCode = data.ColorCode

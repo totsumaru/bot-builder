@@ -4,8 +4,13 @@ import (
 	"encoding/json"
 
 	"github.com/totsumaru/bot-builder/context/task/domain/action"
+	"github.com/totsumaru/bot-builder/context/task/domain/action/reply_embed"
+	"github.com/totsumaru/bot-builder/context/task/domain/action/reply_text"
+	"github.com/totsumaru/bot-builder/context/task/domain/action/send_embed"
+	"github.com/totsumaru/bot-builder/context/task/domain/action/send_text"
 	"github.com/totsumaru/bot-builder/context/task/domain/condition"
 	"github.com/totsumaru/bot-builder/lib/errors"
+	"github.com/totsumaru/bot-builder/lib/seeker"
 )
 
 // ifブロックです
@@ -91,19 +96,33 @@ func (i *IfBlock) UnmarshalJSON(b []byte) error {
 	data := struct {
 		ActionType  action.ActionType   `json:"action_type"`
 		Condition   condition.Condition `json:"condition"`
-		TrueAction  []action.Action     `json:"true_action"`
-		FalseAction []action.Action     `json:"false_action"`
+		TrueAction  []map[string]any    `json:"true_action"`
+		FalseAction []map[string]any    `json:"false_action"`
 	}{}
 
 	if err := json.Unmarshal(b, &data); err != nil {
 		return err
 	}
 
-	ifBlock, err := NewIfBlock(
-		data.Condition,
-		data.TrueAction,
-		data.FalseAction,
-	)
+	trueAction := make([]action.Action, 0)
+	for _, v := range data.TrueAction {
+		a, err := unmarshalAction(v)
+		if err != nil {
+			return err
+		}
+		trueAction = append(trueAction, a)
+	}
+
+	falseAction := make([]action.Action, 0)
+	for _, v := range data.FalseAction {
+		a, err := unmarshalAction(v)
+		if err != nil {
+			return err
+		}
+		falseAction = append(falseAction, a)
+	}
+
+	ifBlock, err := NewIfBlock(data.Condition, trueAction, falseAction)
 	if err != nil {
 		return err
 	}
@@ -114,4 +133,68 @@ func (i *IfBlock) UnmarshalJSON(b []byte) error {
 	i.falseAction = ifBlock.falseAction
 
 	return nil
+}
+
+// ActionをUnmarshalします
+func unmarshalAction(m map[string]any) (action.Action, error) {
+	actionType := seeker.Str(m, []string{"action_type", "value"})
+	switch actionType {
+	case action.ActionTypeSendText:
+		res := send_text.SendText{}
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, errors.NewError("JSONに変換できません", err)
+		}
+
+		if err = json.Unmarshal(b, &res); err != nil {
+			return nil, errors.NewError("JSONから復元できません", err)
+		}
+		return res, nil
+	case action.ActionTypeReplyText:
+		res := reply_text.ReplyText{}
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, errors.NewError("JSONに変換できません", err)
+		}
+
+		if err = json.Unmarshal(b, &res); err != nil {
+			return nil, errors.NewError("JSONから復元できません", err)
+		}
+		return res, nil
+	case action.ActionTypeSendEmbed:
+		res := send_embed.SendEmbed{}
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, errors.NewError("JSONに変換できません", err)
+		}
+
+		if err = json.Unmarshal(b, &res); err != nil {
+			return nil, errors.NewError("JSONから復元できません", err)
+		}
+		return res, nil
+	case action.ActionTypeReplyEmbed:
+		res := reply_embed.ReplyEmbed{}
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, errors.NewError("JSONに変換できません", err)
+		}
+
+		if err = json.Unmarshal(b, &res); err != nil {
+			return nil, errors.NewError("JSONから復元できません", err)
+		}
+		return res, nil
+	case action.ActionTypeIfBlock:
+		res := IfBlock{}
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, errors.NewError("JSONに変換できません", err)
+		}
+
+		if err = json.Unmarshal(b, &res); err != nil {
+			return nil, errors.NewError("JSONから復元できません", err)
+		}
+		return res, nil
+	default:
+		return nil, errors.NewError("アクションタイプが不正です")
+	}
 }
