@@ -49,8 +49,11 @@ func ReplyEmbedMessage(
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{embed},
-			//Flags:      discordgo.MessageFlagsEphemeral, // TODO
 		},
+	}
+
+	if replyEmbed.IsEphemeral() {
+		resp.Data.Flags = discordgo.MessageFlagsEphemeral
 	}
 
 	if len(replyEmbed.ComponentID()) > 0 {
