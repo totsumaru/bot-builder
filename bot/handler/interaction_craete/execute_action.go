@@ -27,12 +27,17 @@ func executeAction(s *discordgo.Session, i *discordgo.InteractionCreate, act act
 			}
 		}
 
+		componentIDs := make([]string, 0)
+		for _, v := range replyEmbed.ComponentID() {
+			componentIDs = append(componentIDs, v.String())
+		}
+		btnComponents, err := componentApp.FindButtonByIDs(bot.DB, componentIDs)
+		if err != nil {
+			return errors.NewError("複数IDでコンポーネントを取得できません", err)
+		}
+
 		btns := make([]discordgo.Button, 0)
-		for _, componentID := range replyEmbed.ComponentID() {
-			btnComponent, err := componentApp.FindButtonByID(bot.DB, componentID.String())
-			if err != nil {
-				return errors.NewError("コンポーネントを取得できません", err)
-			}
+		for _, btnComponent := range btnComponents {
 			btn := discordgo.Button{
 				Label:    btnComponent.Label().String(),
 				Style:    bot.ButtonStyleDomainToDiscord[btnComponent.Style().String()],

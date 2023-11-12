@@ -10,19 +10,23 @@ import (
 	"github.com/totsumaru/bot-builder/lib/errors"
 )
 
-// TODO: 優先度低: FindByIDsでボタンを複数一気に取れるようにする
 // アクションを実行します
 func executeAction(s *discordgo.Session, m *discordgo.MessageCreate, act action.Action) error {
 	switch act.ActionType().String() {
 	case action.ActionTypeSendText:
 		sendText := act.(send_text.SendText)
 
+		componentIDs := make([]string, 0)
+		for _, v := range sendText.ComponentID() {
+			componentIDs = append(componentIDs, v.String())
+		}
+		btnComponents, err := componentApp.FindButtonByIDs(bot.DB, componentIDs)
+		if err != nil {
+			return errors.NewError("複数IDでコンポーネントを取得できません", err)
+		}
+
 		btns := make([]discordgo.Button, 0)
-		for _, componentID := range sendText.ComponentID() {
-			btnComponent, err := componentApp.FindButtonByID(bot.DB, componentID.String())
-			if err != nil {
-				return errors.NewError("コンポーネントを取得できません", err)
-			}
+		for _, btnComponent := range btnComponents {
 			btn := discordgo.Button{
 				Label:    btnComponent.Label().String(),
 				Style:    bot.ButtonStyleDomainToDiscord[btnComponent.Style().String()],
@@ -41,7 +45,7 @@ func executeAction(s *discordgo.Session, m *discordgo.MessageCreate, act action.
 			Components: []discordgo.MessageComponent{actions},
 		}
 
-		_, err := s.ChannelMessageSendComplex(sendText.ChannelID().String(), data)
+		_, err = s.ChannelMessageSendComplex(sendText.ChannelID().String(), data)
 		if err != nil {
 			return errors.NewError("メッセージを送信できません", err)
 		}

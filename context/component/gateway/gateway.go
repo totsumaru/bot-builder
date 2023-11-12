@@ -95,6 +95,34 @@ func (g Gateway) FindByID(id context.UUID) (domain.Component, error) {
 	return res, nil
 }
 
+// FindByIDs は指定されたIDのリストに基づいてコンポーネントを検索します
+func (g Gateway) FindByIDs(ids []context.UUID) ([]domain.Component, error) {
+	var dbComponents []componentDB.Component
+	var domainComponents []domain.Component
+
+	// IDのリストを文字列のスライスに変換
+	stringIDs := make([]string, len(ids))
+	for i, id := range ids {
+		stringIDs[i] = id.String()
+	}
+
+	// データベースからIDに一致するレコードを検索
+	if err := g.tx.Where("id IN (?)", stringIDs).Find(&dbComponents).Error; err != nil {
+		return nil, errors.NewError("複数のIDでコンポーネントを取得できません", err)
+	}
+
+	// 取得したDBレコードをドメインモデルに変換
+	for _, dbComponent := range dbComponents {
+		component, err := castToDomainModel(dbComponent)
+		if err != nil {
+			return nil, err
+		}
+		domainComponents = append(domainComponents, component)
+	}
+
+	return domainComponents, nil
+}
+
 // イベントIDでアクションを取得します
 //
 // レコードが存在しない場合はエラーを返します。
