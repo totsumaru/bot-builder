@@ -11,12 +11,12 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/totsumaru/bot-builder/api"
-	"github.com/totsumaru/bot-builder/bot"
-	"github.com/totsumaru/bot-builder/bot/handler"
 	applicationDB "github.com/totsumaru/bot-builder/context/application/gateway/database"
 	componentDB "github.com/totsumaru/bot-builder/context/component/gateway/database"
 	taskDB "github.com/totsumaru/bot-builder/context/task/gateway/database"
+	"github.com/totsumaru/bot-builder/expose"
+	"github.com/totsumaru/bot-builder/expose/api"
+	"github.com/totsumaru/bot-builder/expose/bot/handler"
 	"github.com/totsumaru/bot-builder/lib/errors"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -74,7 +74,7 @@ func main() {
 		panic(errors.NewError("DBに接続できません", err))
 	}
 
-	bot.DB = db
+	expose.DB = db
 
 	// テーブルが存在していない場合のみテーブルを作成します
 	// 存在している場合はスキーマを同期します

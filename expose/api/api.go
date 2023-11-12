@@ -2,11 +2,11 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	applicationCreate "github.com/totsumaru/bot-builder/api/application/create"
-	"github.com/totsumaru/bot-builder/api/application/update/name"
-	buttonCreate "github.com/totsumaru/bot-builder/api/component/button/create"
-	"github.com/totsumaru/bot-builder/api/component/button/update"
-	"github.com/totsumaru/bot-builder/api/task/create"
+	applicationCreate "github.com/totsumaru/bot-builder/expose/api/application/create"
+	"github.com/totsumaru/bot-builder/expose/api/application/update/name"
+	buttonCreate "github.com/totsumaru/bot-builder/expose/api/component/button/create"
+	"github.com/totsumaru/bot-builder/expose/api/component/button/update"
+	"github.com/totsumaru/bot-builder/expose/api/task/create"
 	"gorm.io/gorm"
 )
 

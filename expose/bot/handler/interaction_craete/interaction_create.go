@@ -1,34 +1,40 @@
-package message_create
+package interaction_craete
 
 import (
 	"github.com/bwmarrin/discordgo"
-	"github.com/totsumaru/bot-builder/bot"
-	taskApp "github.com/totsumaru/bot-builder/context/task/app"
 	"github.com/totsumaru/bot-builder/context/task/domain"
 	"github.com/totsumaru/bot-builder/context/task/domain/condition"
+	"github.com/totsumaru/bot-builder/expose"
 	"github.com/totsumaru/bot-builder/lib/errors"
 	"gorm.io/gorm"
 )
 
-// メッセージが作成された時のハンドラです
-func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
-	err := bot.DB.Transaction(func(tx *gorm.DB) error {
-		// TODO: ここをオンメモリにする
-		domainTasks, err := taskApp.FindByServerID(tx, m.GuildID)
+// インタラクションが作成された時のハンドラです
+func InteractionCreateHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	err := expose.DB.Transaction(func(tx *gorm.DB) error {
+		domainTasks, err := expose.GetCachedTasks(i.GuildID)
 		if err != nil {
 			return errors.NewError("タスクを取得できません", err)
 		}
 
 		for _, domainTask := range domainTasks {
-			if err = CheckAndExecuteActions(s, m, domainTask.IfBlock()); err != nil {
-				return errors.NewError("アクションを実行できません", err)
+			kind := domainTask.IfBlock().Condition().Kind().String()
+			switch kind {
+			case condition.KindClickedButtonIs:
+				switch i.Type {
+				// ボタンがクリックされた時
+				case discordgo.InteractionMessageComponent:
+					if err = CheckAndExecuteActions(s, i, domainTask.IfBlock()); err != nil {
+						return errors.NewError("処理を実行できません", err)
+					}
+				}
 			}
 		}
 
 		return nil
 	})
 	if err != nil {
-		errors.SendErrMsg(s, errors.NewError("エラーが発生しました", err), m.GuildID)
+		errors.SendErrMsg(s, errors.NewError("エラーが発生しました", err), i.GuildID)
 		return
 	}
 }
@@ -36,22 +42,23 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 // 条件を検証し、アクションを実行します
 func CheckAndExecuteActions(
 	s *discordgo.Session,
-	m *discordgo.MessageCreate,
+	i *discordgo.InteractionCreate,
 	ifBlock domain.IfBlock,
 ) error {
 	// 条件が正しいかどうかを検証します
-	ok, err := IsValidCondition(s, m, ifBlock.Condition())
+	ok, err := IsValidCondition(i, ifBlock.Condition())
 	if err != nil {
 		return errors.NewError("条件を検証できません", err)
 	}
 
+	// アクションを実行します
 	actions := ifBlock.FalseAction()
 	if ok {
 		actions = ifBlock.TrueAction()
 	}
 
 	for _, act := range actions {
-		if err = ExecuteAction(s, m, act); err != nil {
+		if err = ExecuteAction(s, i, act); err != nil {
 			return errors.NewError("アクションを実行できません", err)
 		}
 	}
@@ -60,26 +67,22 @@ func CheckAndExecuteActions(
 }
 
 // 条件が正しいかどうかを検証します
-func IsValidCondition(s *discordgo.Session, m *discordgo.MessageCreate, cond condition.Condition) (bool, error) {
+func IsValidCondition(i *discordgo.InteractionCreate, cond condition.Condition) (bool, error) {
 	expected := cond.Expected().String()
 
 	switch cond.Kind().String() {
-	case condition.KindCreatedMessageIs:
-		if m.Content == expected {
+	case condition.KindClickedButtonIs:
+		if i.MessageComponentData().CustomID == expected {
 			return true, nil
 		}
 		return false, nil
 	case condition.KindOperatorIs:
-		if m.Author.ID == expected {
+		if i.Member.User.ID == expected {
 			return true, nil
 		}
 		return false, nil
 	case condition.KindOperatorRoleHas:
-		member, err := s.GuildMember(m.GuildID, m.Author.ID)
-		if err != nil {
-			return false, errors.NewError("メンバーを取得できません", err)
-		}
-		for _, roleID := range member.Roles {
+		for _, roleID := range i.Member.Roles {
 			if roleID == expected {
 				return true, nil
 			}
