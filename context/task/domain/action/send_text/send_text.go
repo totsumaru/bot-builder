@@ -63,6 +63,10 @@ func (s SendText) ComponentID() []context.UUID {
 
 // 検証します
 func (s SendText) validate() error {
+	if len(s.componentID) > 5 {
+		return errors.NewError("コンポーネントIDは5つまでです", nil)
+	}
+
 	return nil
 }
 

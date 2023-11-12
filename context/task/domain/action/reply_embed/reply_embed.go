@@ -95,6 +95,10 @@ func (s ReplyEmbed) ComponentID() []context.UUID {
 
 // 検証します
 func (s ReplyEmbed) validate() error {
+	if len(s.componentID) > 5 {
+		return errors.NewError("コンポーネントIDは5つまでです", nil)
+	}
+
 	return nil
 }
 
