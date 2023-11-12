@@ -4,6 +4,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/totsumaru/bot-builder/bot"
 	taskApp "github.com/totsumaru/bot-builder/context/task/app"
+	"github.com/totsumaru/bot-builder/context/task/domain"
 	"github.com/totsumaru/bot-builder/context/task/domain/condition"
 	"github.com/totsumaru/bot-builder/lib/errors"
 	"gorm.io/gorm"
@@ -25,16 +26,9 @@ func InteractionCreateHandler(s *discordgo.Session, i *discordgo.InteractionCrea
 				if i.Type != discordgo.InteractionMessageComponent {
 					continue
 				}
-				// 期待したボタンIDでは無い場合は無視します
-				expectedButtonID := domainTask.IfBlock().Condition().Expected().String()
-				if i.MessageComponentData().CustomID != expectedButtonID {
-					continue
-				}
 
-				for _, act := range domainTask.IfBlock().TrueAction() {
-					if err = executeAction(s, i, act); err != nil {
-						return errors.NewError("処理を実行できません", err)
-					}
+				if err = CheckAndExecuteActions(s, i, domainTask.IfBlock()); err != nil {
+					return errors.NewError("処理を実行できません", err)
 				}
 			}
 		}
@@ -44,5 +38,58 @@ func InteractionCreateHandler(s *discordgo.Session, i *discordgo.InteractionCrea
 	if err != nil {
 		errors.SendErrMsg(s, errors.NewError("エラーが発生しました", err), i.GuildID)
 		return
+	}
+}
+
+// 条件を検証し、アクションを実行します
+func CheckAndExecuteActions(
+	s *discordgo.Session,
+	i *discordgo.InteractionCreate,
+	ifBlock domain.IfBlock,
+) error {
+	// 条件が正しいかどうかを検証します
+	ok, err := IsValidCondition(s, i, ifBlock.Condition())
+	if err != nil {
+		return errors.NewError("条件を検証できません", err)
+	}
+
+	actions := ifBlock.FalseAction()
+	if ok {
+		actions = ifBlock.TrueAction()
+	}
+
+	for _, act := range actions {
+		if err = ExecuteAction(s, i, act); err != nil {
+			return errors.NewError("アクションを実行できません", err)
+		}
+	}
+
+	return nil
+}
+
+// 条件が正しいかどうかを検証します
+func IsValidCondition(s *discordgo.Session, i *discordgo.InteractionCreate, cond condition.Condition) (bool, error) {
+	expected := cond.Expected().String()
+
+	switch cond.Kind().String() {
+	case condition.KindClickedButtonIs:
+		if i.MessageComponentData().CustomID == expected {
+			return true, nil
+		}
+		return false, nil
+	case condition.KindOperatorIs:
+		if i.Member.User.ID == expected {
+			return true, nil
+		}
+		return false, nil
+	case condition.KindOperatorRoleHas:
+		for _, roleID := range i.Member.Roles {
+			if roleID == expected {
+				return true, nil
+			}
+		}
+		return false, nil
+	default:
+		return false, errors.NewError("条件の種類が不正です")
 	}
 }
