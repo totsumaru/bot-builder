@@ -3,10 +3,7 @@ package interaction_craete
 import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/totsumaru/bot-builder/bot"
-	componentApp "github.com/totsumaru/bot-builder/context/component/app"
 	taskApp "github.com/totsumaru/bot-builder/context/task/app"
-	"github.com/totsumaru/bot-builder/context/task/domain/action"
-	"github.com/totsumaru/bot-builder/context/task/domain/action/reply_embed"
 	"github.com/totsumaru/bot-builder/context/task/domain/condition"
 	"github.com/totsumaru/bot-builder/lib/errors"
 	"gorm.io/gorm"
@@ -45,66 +42,7 @@ func InteractionCreateHandler(s *discordgo.Session, i *discordgo.InteractionCrea
 		return nil
 	})
 	if err != nil {
-		panic(err)
+		errors.SendErrMsg(s, errors.NewError("エラーが発生しました", err), i.GuildID)
+		return
 	}
-}
-
-// アクションを実行します
-func executeAction(s *discordgo.Session, i *discordgo.InteractionCreate, act action.Action) error {
-	switch act.ActionType().String() {
-	case action.ActionTypeReplyEmbed:
-		replyEmbed := act.(reply_embed.ReplyEmbed)
-		embed := &discordgo.MessageEmbed{
-			Title:       replyEmbed.Title().String(),
-			Description: replyEmbed.Content().String(),
-			Color:       replyEmbed.ColorCode().Int(),
-		}
-
-		if replyEmbed.DisplayAuthor() {
-			embed.Author = &discordgo.MessageEmbedAuthor{
-				Name:    i.Member.User.Username,
-				IconURL: i.Member.User.AvatarURL(""),
-			}
-		}
-
-		btns := make([]discordgo.Button, 0)
-		for _, componentID := range replyEmbed.ComponentID() {
-			btnComponent, err := componentApp.FindButtonByID(bot.DB, componentID.String())
-			if err != nil {
-				return errors.NewError("コンポーネントを取得できません", err)
-			}
-			btn := discordgo.Button{
-				Label:    btnComponent.Label().String(),
-				Style:    bot.ButtonStyleDomainToDiscord[btnComponent.Style().String()],
-				CustomID: btnComponent.ID().String(),
-			}
-			btns = append(btns, btn)
-		}
-
-		components := make([]discordgo.MessageComponent, 0)
-		for _, btn := range btns {
-			components = append(components, btn)
-		}
-		actions := discordgo.ActionsRow{
-			Components: components,
-		}
-
-		resp := &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Components: []discordgo.MessageComponent{actions},
-				Embeds:     []*discordgo.MessageEmbed{embed},
-				//Flags:      discordgo.MessageFlagsEphemeral, // TODO
-			},
-		}
-		if len(components) == 0 {
-			resp.Data.Components = nil
-		}
-
-		if err := s.InteractionRespond(i.Interaction, resp); err != nil {
-			return errors.NewError("メッセージを送信できません", err)
-		}
-	}
-
-	return nil
 }

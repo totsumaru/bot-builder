@@ -19,13 +19,29 @@ type Error struct {
 	Previous error
 }
 
-const AdminServerID = "998773327076274197"
+const AdminServerID = "984614055681613864"
 
 // エラーメッセージを送信します
-func SendErrMsg(s *discordgo.Session, e error) {
+func SendErrMsg(s *discordgo.Session, e error, guildID string) {
+	descriptionTmpl := `
+サーバー: %s
+---
+%s
+`
+	var guildName string
+	if guildID != "" {
+		guild, err := s.Guild(guildID)
+		if err != nil {
+			log.Println(err)
+		}
+		guildName = guild.Name
+	} else {
+		guildName = "不明"
+	}
+
 	embed := &discordgo.MessageEmbed{
 		Title:       fmt.Sprintf("エラーが発生しました"),
-		Description: e.Error(),
+		Description: fmt.Sprintf(descriptionTmpl, guildName, e.Error()),
 		Color:       color.Red,
 		Timestamp:   time.Now().Format("2006-01-02T15:04:05+09:00"),
 	}

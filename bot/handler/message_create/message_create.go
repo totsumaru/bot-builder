@@ -47,7 +47,8 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return nil
 	})
 	if err != nil {
-		panic(err)
+		errors.SendErrMsg(s, errors.NewError("エラーが発生しました", err), m.GuildID)
+		return
 	}
 }
 
