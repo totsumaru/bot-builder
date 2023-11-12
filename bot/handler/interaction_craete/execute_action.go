@@ -66,7 +66,7 @@ func executeAction(s *discordgo.Session, i *discordgo.InteractionCreate, act act
 			resp.Data.Components = nil
 		}
 
-		if err := s.InteractionRespond(i.Interaction, resp); err != nil {
+		if err = s.InteractionRespond(i.Interaction, resp); err != nil {
 			return errors.NewError("メッセージを送信できません", err)
 		}
 	}
