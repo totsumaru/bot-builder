@@ -82,7 +82,7 @@ func executeAction(s *discordgo.Session, m *discordgo.MessageCreate, act action.
 			Components: []discordgo.MessageComponent{actions},
 		}
 
-		_, err := s.ChannelMessageSendComplex(m.ChannelID, data)
+		_, err := s.ChannelMessageSendComplex(sendText.ChannelID().String(), data)
 		if err != nil {
 			return errors.NewError("メッセージを送信できません", err)
 		}
@@ -131,7 +131,7 @@ func executeAction(s *discordgo.Session, m *discordgo.MessageCreate, act action.
 			return errors.NewError("メッセージを送信できません", err)
 		}
 	default:
-
+		return errors.NewError("アクションタイプが存在していません")
 	}
 
 	return nil
