@@ -22,13 +22,12 @@ func InteractionCreateHandler(s *discordgo.Session, i *discordgo.InteractionCrea
 			kind := domainTask.IfBlock().Condition().Kind().String()
 			switch kind {
 			case condition.KindClickedButtonIs:
-				// ボタンクリックのタイプ以外の場合は無視します
-				if i.Type != discordgo.InteractionMessageComponent {
-					continue
-				}
-
-				if err = CheckAndExecuteActions(s, i, domainTask.IfBlock()); err != nil {
-					return errors.NewError("処理を実行できません", err)
+				switch i.Type {
+				// ボタンがクリックされた時
+				case discordgo.InteractionMessageComponent:
+					if err = CheckAndExecuteActions(s, i, domainTask.IfBlock()); err != nil {
+						return errors.NewError("処理を実行できません", err)
+					}
 				}
 			}
 		}
@@ -48,11 +47,12 @@ func CheckAndExecuteActions(
 	ifBlock domain.IfBlock,
 ) error {
 	// 条件が正しいかどうかを検証します
-	ok, err := IsValidCondition(s, i, ifBlock.Condition())
+	ok, err := IsValidCondition(i, ifBlock.Condition())
 	if err != nil {
 		return errors.NewError("条件を検証できません", err)
 	}
 
+	// アクションを実行します
 	actions := ifBlock.FalseAction()
 	if ok {
 		actions = ifBlock.TrueAction()
@@ -68,7 +68,7 @@ func CheckAndExecuteActions(
 }
 
 // 条件が正しいかどうかを検証します
-func IsValidCondition(s *discordgo.Session, i *discordgo.InteractionCreate, cond condition.Condition) (bool, error) {
+func IsValidCondition(i *discordgo.InteractionCreate, cond condition.Condition) (bool, error) {
 	expected := cond.Expected().String()
 
 	switch cond.Kind().String() {
